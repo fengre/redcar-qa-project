@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Question, Answer, HistoryItem } from '../../models/types';
+import { Question, HistoryItem } from '../../models/types';
 import { QuestionController } from '../../controllers/questionController';
 import { History } from './History';
 
 export const QuestionForm = () => {
   const [question, setQuestion] = useState('');
-  const [currentAnswer, setCurrentAnswer] = useState<Answer | null>(null);
+  const [streamingText, setStreamingText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -16,23 +16,49 @@ export const QuestionForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setStreamingText('');
     setIsLoading(true);
 
     try {
-      const answer = await controller.processQuestion(question);
-      // Set the current answer
-      setCurrentAnswer({ text: answer });
+      const domain = controller.extractDomain(question);
+      if (!domain) {
+        throw new Error('Please include a company domain in your question (e.g., "What does example.com do?")');
+      }
 
-      // Add to history
-      const historyItem: HistoryItem = {
-        id: uuidv4(),
-        timestamp: new Date(),
-        question: { question, domain: '' },
-        answer: { text: answer }
-      };
-      setHistory(prev => [historyItem, ...prev]);
+      // Get provider and start streaming
+      const provider = controller.getProvider();
+      const questionObj: Question = { question, domain };
+      
+      // Create a response buffer
+      let fullText = '';
+      
+      try {
+        // Handle streaming with error boundaries
+        for await (const chunk of provider.streamAnswer(questionObj)) {
+          if (chunk) { // Validate chunk exists
+            fullText += chunk;
+            setStreamingText(fullText);
+          }
+        }
+
+        // Only add to history if we got a complete response
+        if (fullText) {
+          const historyItem: HistoryItem = {
+            id: uuidv4(),
+            timestamp: new Date(),
+            question: questionObj,
+            answer: { text: fullText }
+          };
+          setHistory(prev => [historyItem, ...prev]);
+        }
+      } catch (streamError) {
+        console.error('Streaming error:', streamError);
+        throw new Error('Error while receiving answer stream');
+      }
     } catch (error: any) {
-      setError(error.message || 'Failed to process question');
+      const errorMessage = error.message || 'Failed to process question';
+      setError(errorMessage);
+      setStreamingText(''); // Clear any partial response
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +66,7 @@ export const QuestionForm = () => {
 
   const handleHistorySelect = (item: HistoryItem) => {
     setQuestion(item.question.question);
-    setCurrentAnswer(item.answer);
+    setStreamingText(item.answer.text);
   };
 
   return (
@@ -72,17 +98,18 @@ export const QuestionForm = () => {
         </button>
       </form>
 
-      {/* Always show the answer section if there's a current answer */}
-      {currentAnswer && (
-        <div className="mt-4">
+      {(streamingText || isLoading) && (
+        <div className="border rounded-lg p-6 bg-white shadow-sm">
           <h2 className="text-xl font-bold mb-4">Answer:</h2>
-          <div className="border rounded-md p-4 bg-gray-50">
-            {currentAnswer.text}
+          <div className="prose max-w-none whitespace-pre-wrap">
+            {streamingText}
+            {isLoading && (
+              <span className="inline-block w-2 h-4 ml-1 bg-foreground animate-pulse" />
+            )}
           </div>
         </div>
       )}
 
-      {/* Show history below the current answer */}
       {history.length > 0 && (
         <History items={history} onSelect={handleHistorySelect} />
       )}

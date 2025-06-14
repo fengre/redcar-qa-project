@@ -14,13 +14,22 @@ export class AiService {
   private providers: Map<AIProviderType, AIProvider>;
 
   private constructor() {
-    this.providers = new Map([
-      [AIProviderType.CLAUDE, new ClaudeProvider()],
-      [AIProviderType.PERPLEXITY, new PerplexityProvider()]
-    ]);
-    
-    // Default to Claude
-    this.provider = this.providers.get(AIProviderType.PERPLEXITY)!;
+    try {
+      this.providers = new Map([
+        [AIProviderType.CLAUDE, new ClaudeProvider()],
+        [AIProviderType.PERPLEXITY, new PerplexityProvider()]
+      ]);
+      
+      // Default to Perplexity
+      const defaultProvider = this.providers.get(AIProviderType.PERPLEXITY);
+      if (!defaultProvider) {
+        throw new Error('Default provider not initialized');
+      }
+      this.provider = defaultProvider;
+    } catch (error) {
+      console.error('Error initializing AiService:', error);
+      throw error;
+    }
   }
 
   public static getInstance(): AiService {
@@ -38,7 +47,14 @@ export class AiService {
     this.provider = newProvider;
   }
 
+  public getProvider(): AIProvider {
+    return this.provider;
+  }
+
   public async getAnswer(question: Question): Promise<Answer> {
+    if (!question.question.trim()) {
+      throw new Error('Question cannot be empty');
+    }
     return this.provider.getAnswer(question);
   }
 }

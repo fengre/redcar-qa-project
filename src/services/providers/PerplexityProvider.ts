@@ -3,14 +3,18 @@ import { Question, Answer } from '../../models/types';
 
 export class PerplexityProvider implements AIProvider {
   private apiKey: string;
+  private baseUrl = 'https://api.perplexity.ai/chat/completions';
 
   constructor() {
     this.apiKey = process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY || '';
+    if (!this.apiKey) {
+      throw new Error('Perplexity API key is not configured');
+    }
   }
 
-  async getAnswer(question: Question): Promise<Answer> {
+  async *streamAnswer(question: Question): AsyncGenerator<string, void, unknown> {
     try {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,19 +25,77 @@ export class PerplexityProvider implements AIProvider {
           messages: [{
             role: 'user',
             content: 'Please output a very simple, straightforward, unformatted response to the question: ' + question.question
-          }]
+          }],
+          stream: true,
+          temperature: 0.7,
+          max_tokens: 1024
         })
       });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to get answer from Perplexity');
+      if (!response.ok || !response.body) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Perplexity API error:', errorData);
+        throw new Error(errorData.error?.message || `Stream response error: ${response.status}`);
       }
 
-      return { text: data.choices[0].message.content };
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      try {
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+            
+            if (trimmedLine === 'data: [DONE]') {
+              return;
+            }
+
+            try {
+              const data = JSON.parse(trimmedLine.slice(6));
+              if (data.choices?.[0]?.delta?.content) {
+                // Split content into individual characters and yield them
+                const content = data.choices[0].delta.content;
+                for (const char of content) {
+                  yield char;
+                }
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse chunk:', trimmedLine);
+              continue;
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
     } catch (error) {
-      throw new Error('Perplexity API error: ' + error);
+      console.error('Perplexity streaming error:', error);
+      throw error;
+    }
+  }
+
+  async getAnswer(question: Question): Promise<Answer> {
+    let fullText = '';
+    try {
+      for await (const chunk of this.streamAnswer(question)) {
+        fullText += chunk;
+      }
+      if (!fullText) {
+        throw new Error('No response received from Perplexity');
+      }
+      return { text: fullText };
+    } catch (error) {
+      console.error('Perplexity error:', error);
+      throw error;
     }
   }
 }

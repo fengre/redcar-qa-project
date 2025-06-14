@@ -1,5 +1,6 @@
 import { Question } from '../models/types';
-import { AiService } from '../services/aiService';
+import { AiService, AIProviderType } from '../services/aiService';
+import { AIProvider } from '../services/interfaces/AIProvider';
 
 export class QuestionController {
   private static instance: QuestionController;
@@ -14,6 +15,11 @@ export class QuestionController {
       QuestionController.instance = new QuestionController();
     }
     return QuestionController.instance;
+  }
+  
+  // Fix: Return AIProvider instance instead of string
+  public getProvider(): AIProvider {
+    return this.aiService.getProvider();
   }
 
   public extractDomain(question: string): string | null {
