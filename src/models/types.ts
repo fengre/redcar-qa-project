@@ -7,10 +7,9 @@ export interface Answer {
   text: string;
 }
 
-export interface PuterResponse {
-  message: {
-    content: Array<{
-      text: string;
-    }>;
-  };
+export interface HistoryItem {
+  id: string;
+  timestamp: Date;
+  question: Question;
+  answer: Answer;
 }
