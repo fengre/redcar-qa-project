@@ -20,7 +20,7 @@ export class PerplexityProvider implements AIProvider {
           model: 'sonar-pro',
           messages: [{
             role: 'user',
-            content: question.question
+            content: 'Please output a very simple, straightforward, unformatted response to the question: ' + question.question
           }]
         })
       });

@@ -20,7 +20,7 @@ export class AiService {
     ]);
     
     // Default to Claude
-    this.provider = this.providers.get(AIProviderType.CLAUDE)!;
+    this.provider = this.providers.get(AIProviderType.PERPLEXITY)!;
   }
 
   public static getInstance(): AiService {
