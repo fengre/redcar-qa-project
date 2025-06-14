@@ -1,10 +1,10 @@
 import { Question, Answer } from '../models/types';
 import { AIProvider } from './interfaces/AIProvider';
-import { ClaudeProvider } from './providers/ClaudeProvider';
 import { PerplexityProvider } from './providers/PerplexityProvider';
+import { MultiStepProcessor } from './interfaces/MultiStepProcessor';
+import { MultiStepAIProcessor } from './MultiStepAIProcessor';
 
 export enum AIProviderType {
-  CLAUDE = 'claude',
   PERPLEXITY = 'perplexity'
 }
 
@@ -17,7 +17,6 @@ export class AiService {
   private constructor() {
     try {
       this.providers = new Map([
-        [AIProviderType.CLAUDE, new ClaudeProvider()],
         [AIProviderType.PERPLEXITY, new PerplexityProvider()]
       ]);
       

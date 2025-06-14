@@ -14,35 +14,48 @@ export const QuestionForm = () => {
   const controller = QuestionController.getInstance();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setStreamingText('');
-    setIsLoading(true);
+  e.preventDefault();
+  setError('');
+  setStreamingText('');
 
-    try {
-      const provider = controller.getProvider();
-      let fullText = '';
+  // Validate question
+  const validation = controller.validateQuestion(question);
+  if (!validation.isValid) {
+    setError(validation.error || 'Invalid question');
+    return;
+  }
 
-      for await (const chunk of provider.streamAnswer({ question, domain: '' })) {
-        fullText += chunk;
-        setStreamingText(fullText);
-      }
+  setIsLoading(true);
 
-      // Add to history without limit
-      const historyItem: HistoryItem = {
-        id: uuidv4(),
-        timestamp: new Date(),
-        question: { question, domain: '' },
-        answer: { text: fullText }
-      };
-      
-      setHistory(prev => [historyItem, ...prev]);
-    } catch (error: any) {
-      setError(error.message || 'Failed to process question');
-    } finally {
-      setIsLoading(false);
+  try {
+    const domain = controller.extractDomain(question);
+    const provider = controller.getProvider();
+    // Domain is guaranteed to exist due to validation
+    let fullText = '';
+    
+    for await (const chunk of provider.streamAnswer({ 
+      question, 
+      domain: domain! 
+    })) {
+      fullText += chunk;
+      setStreamingText(fullText);
     }
-  };
+
+    // Add to history
+    const historyItem: HistoryItem = {
+      id: uuidv4(),
+      timestamp: new Date(),
+      question: { question, domain: domain! },
+      answer: { text: fullText }
+    };
+    
+    setHistory(prev => [historyItem, ...prev]);
+  } catch (error: any) {
+    setError(error.message || 'Failed to process question');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleHistorySelect = (item: HistoryItem) => {
     setQuestion(item.question.question);

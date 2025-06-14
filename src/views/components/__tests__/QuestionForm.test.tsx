@@ -1,56 +1,106 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { QuestionForm } from '../QuestionForm';
 import { QuestionController } from '../../../controllers/questionController';
 
 jest.mock('../../../controllers/questionController');
 
 describe('QuestionForm', () => {
+  const mockStreamAnswer = jest.fn();
+  const mockGetProvider = jest.fn();
+  const mockValidateQuestion = jest.fn();
+  const mockExtractDomain = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+    (QuestionController.getInstance as jest.Mock).mockReturnValue({
+      getProvider: mockGetProvider,
+      validateQuestion: mockValidateQuestion,
+      extractDomain: mockExtractDomain
+    });
   });
 
-  it('should render the form', () => {
+  it('should render form elements', () => {
     render(<QuestionForm />);
     expect(screen.getByLabelText(/your question/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
   });
 
-  it('should show error for invalid question', async () => {
+  it('should handle validation errors', async () => {
+    mockValidateQuestion.mockReturnValue({ 
+      isValid: false, 
+      error: 'Test error' 
+    });
+
     render(<QuestionForm />);
     
     const submitButton = screen.getByRole('button', { name: /submit/i });
-    const textArea = screen.getByLabelText(/your question/i);
-
-    fireEvent.change(textArea, { target: { value: 'Invalid question without domain' } });
     fireEvent.click(submitButton);
 
-    await waitFor(() => {
-      expect(screen.getByText(/please include a company domain/i)).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Test error')).toBeInTheDocument();
   });
 
   it('should handle successful submission', async () => {
-    const mockStreamAnswer = jest.fn(async function* () {
+    mockValidateQuestion.mockReturnValue({ isValid: true });
+    mockExtractDomain.mockReturnValue('example.com');
+    
+    const mockStreamGenerator = async function* () {
       yield 'Test';
       yield ' response';
-    });
-
-    const mockProvider = {
-      streamAnswer: mockStreamAnswer
     };
-
-    jest.spyOn(QuestionController.prototype, 'getProvider').mockReturnValue(mockProvider);
+    
+    mockGetProvider.mockReturnValue({ streamAnswer: mockStreamGenerator });
 
     render(<QuestionForm />);
     
     const textArea = screen.getByLabelText(/your question/i);
     fireEvent.change(textArea, { target: { value: 'What does example.com do?' } });
     
-    const submitButton = screen.getByRole('button', { name: /submit/i });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    });
 
     await waitFor(() => {
-      expect(screen.getByText('Test response')).toBeInTheDocument();
+      expect(screen.getByText(/Test response/)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle streaming errors', async () => {
+    mockValidateQuestion.mockReturnValue({ isValid: true });
+    mockExtractDomain.mockReturnValue('example.com');
+    
+    mockGetProvider.mockReturnValue({
+      streamAnswer: async function* () {
+        throw new Error('Stream error');
+      }
+    });
+
+    render(<QuestionForm />);
+    
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    });
+
+    expect(await screen.findByText(/Stream error/)).toBeInTheDocument();
+  });
+
+  it('should update history after successful response', async () => {
+    mockValidateQuestion.mockReturnValue({ isValid: true });
+    mockExtractDomain.mockReturnValue('example.com');
+    
+    mockGetProvider.mockReturnValue({
+      streamAnswer: async function* () {
+        yield 'History test response';
+      }
+    });
+
+    render(<QuestionForm />);
+    
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/History test response/)).toBeInTheDocument();
     });
   });
 });
