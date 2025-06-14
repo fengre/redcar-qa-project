@@ -20,45 +20,25 @@ export const QuestionForm = () => {
     setIsLoading(true);
 
     try {
-      const domain = controller.extractDomain(question);
-      if (!domain) {
-        throw new Error('Please include a company domain in your question (e.g., "What does example.com do?")');
-      }
-
-      // Get provider and start streaming
       const provider = controller.getProvider();
-      const questionObj: Question = { question, domain };
-      
-      // Create a response buffer
       let fullText = '';
-      
-      try {
-        // Handle streaming with error boundaries
-        for await (const chunk of provider.streamAnswer(questionObj)) {
-          if (chunk) { // Validate chunk exists
-            fullText += chunk;
-            setStreamingText(fullText);
-          }
-        }
 
-        // Only add to history if we got a complete response
-        if (fullText) {
-          const historyItem: HistoryItem = {
-            id: uuidv4(),
-            timestamp: new Date(),
-            question: questionObj,
-            answer: { text: fullText }
-          };
-          setHistory(prev => [historyItem, ...prev]);
-        }
-      } catch (streamError) {
-        console.error('Streaming error:', streamError);
-        throw new Error('Error while receiving answer stream');
+      for await (const chunk of provider.streamAnswer({ question, domain: '' })) {
+        fullText += chunk;
+        setStreamingText(fullText);
       }
+
+      // Add to history without limit
+      const historyItem: HistoryItem = {
+        id: uuidv4(),
+        timestamp: new Date(),
+        question: { question, domain: '' },
+        answer: { text: fullText }
+      };
+      
+      setHistory(prev => [historyItem, ...prev]);
     } catch (error: any) {
-      const errorMessage = error.message || 'Failed to process question';
-      setError(errorMessage);
-      setStreamingText(''); // Clear any partial response
+      setError(error.message || 'Failed to process question');
     } finally {
       setIsLoading(false);
     }

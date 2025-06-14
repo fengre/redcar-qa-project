@@ -12,6 +12,7 @@ export class AiService {
   private static instance: AiService;
   private provider: AIProvider;
   private providers: Map<AIProviderType, AIProvider>;
+  private multiStepProcessor: MultiStepProcessor;
 
   private constructor() {
     try {
@@ -20,16 +21,25 @@ export class AiService {
         [AIProviderType.PERPLEXITY, new PerplexityProvider()]
       ]);
       
-      // Default to Perplexity
       const defaultProvider = this.providers.get(AIProviderType.PERPLEXITY);
       if (!defaultProvider) {
         throw new Error('Default provider not initialized');
       }
       this.provider = defaultProvider;
+      this.multiStepProcessor = new MultiStepAIProcessor(this.provider);
     } catch (error) {
       console.error('Error initializing AiService:', error);
       throw error;
     }
+  }
+
+  // Add new method for multi-step processing
+  public async *getStreamingAnswer(question: Question): AsyncGenerator<string, void, unknown> {
+    if (!question.question.trim()) {
+      throw new Error('Question cannot be empty');
+    }
+    
+    yield* this.multiStepProcessor.process(question.question, question.domain);
   }
 
   public static getInstance(): AiService {
