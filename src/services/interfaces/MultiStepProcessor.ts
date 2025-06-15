@@ -5,9 +5,8 @@ export interface StepResult {
 
 export interface ProcessStep {
   prompt: string;
-  weight: number;
 }
 
 export interface MultiStepProcessor {
-  process(question: string, domain: string): AsyncGenerator<string, void, unknown>;
+  process(question: string, domain: string): Promise<string>;
 }

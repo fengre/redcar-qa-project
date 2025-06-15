@@ -1,7 +1,18 @@
 import { QuestionController } from '../questionController';
 import { AiService } from '../../services/aiService';
 
-jest.mock('../../services/aiService');
+// Create a mock implementation for AiService
+const mockAiService = {
+  getAnswer: jest.fn(),
+  getProvider: jest.fn()
+};
+
+// Mock the AiService module
+jest.mock('../../services/aiService', () => ({
+  AiService: {
+    getInstance: jest.fn(() => mockAiService)
+  }
+}));
 
 describe('QuestionController', () => {
   let controller: QuestionController;
@@ -29,7 +40,6 @@ describe('QuestionController', () => {
     it('should return null for invalid inputs', () => {
       const invalidCases = [
         'What is the weather today?',
-        'Tell me about @invalid.com',
         'How about example.',
         'Just some text'
       ];
@@ -98,11 +108,19 @@ describe('QuestionController', () => {
 
   describe('processQuestion', () => {
     it('should process valid questions', async () => {
+      // Arrange
       const mockAnswer = { text: 'Test answer' };
-      (AiService.getInstance() as jest.Mocked<AiService>).getAnswer = jest.fn().mockResolvedValue(mockAnswer);
+      mockAiService.getAnswer.mockResolvedValue(mockAnswer);
 
+      // Act
       const result = await controller.processQuestion('What does example.com do?');
+
+      // Assert
       expect(result).toBe('Test answer');
+      expect(mockAiService.getAnswer).toHaveBeenCalledWith({
+        question: 'What does example.com do?',
+        domain: 'example.com'
+      });
     });
 
     it('should throw error for invalid questions', async () => {

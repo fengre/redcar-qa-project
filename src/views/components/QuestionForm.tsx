@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Question, HistoryItem } from '../../models/types';
 import { QuestionController } from '../../controllers/questionController';
 import { History } from './History';
+import { MultiStepAIProcessor } from '../../services/MultiStepAIProcessor';
 
 export const QuestionForm = () => {
   const [question, setQuestion] = useState('');
@@ -14,48 +15,40 @@ export const QuestionForm = () => {
   const controller = QuestionController.getInstance();
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
-  setStreamingText('');
+    e.preventDefault();
+    console.log('Form submitted - starting question processing');
+    setError('');
+    setStreamingText('');
+    setIsLoading(true);
 
-  // Validate question
-  const validation = controller.validateQuestion(question);
-  if (!validation.isValid) {
-    setError(validation.error || 'Invalid question');
-    return;
-  }
+    try {
+      const domain = controller.extractDomain(question);
+      if (!domain) {
+        throw new Error('Please include a company domain in your question');
+      }
+      
+      console.log('Creating MultiStepAIProcessor');
+      const processor = new MultiStepAIProcessor(controller.getProvider());
 
-  setIsLoading(true);
+      console.log('Starting processing with:', { question, domain });
+      const result = await processor.process(question, domain); // Changed this line
+      setStreamingText(result);
 
-  try {
-    const domain = controller.extractDomain(question);
-    const provider = controller.getProvider();
-    // Domain is guaranteed to exist due to validation
-    let fullText = '';
-    
-    for await (const chunk of provider.streamAnswer({ 
-      question, 
-      domain: domain! 
-    })) {
-      fullText += chunk;
-      setStreamingText(fullText);
+      const historyItem: HistoryItem = {
+        id: uuidv4(),
+        timestamp: new Date(),
+        question: { question, domain },
+        answer: { text: result }
+      };
+      
+      setHistory(prev => [historyItem, ...prev]);
+    } catch (error: any) {
+      console.error('Error in question processing:', error);
+      setError(error.message || 'Failed to process question');
+    } finally {
+      setIsLoading(false);
     }
-
-    // Add to history
-    const historyItem: HistoryItem = {
-      id: uuidv4(),
-      timestamp: new Date(),
-      question: { question, domain: domain! },
-      answer: { text: fullText }
-    };
-    
-    setHistory(prev => [historyItem, ...prev]);
-  } catch (error: any) {
-    setError(error.message || 'Failed to process question');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleHistorySelect = (item: HistoryItem) => {
     setQuestion(item.question.question);

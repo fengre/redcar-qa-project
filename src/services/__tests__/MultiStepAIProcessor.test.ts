@@ -2,61 +2,118 @@ import { MultiStepAIProcessor } from '../MultiStepAIProcessor';
 import { AIProvider } from '../interfaces/AIProvider';
 
 describe('MultiStepAIProcessor', () => {
-  let processor: MultiStepAIProcessor;
-  let mockProvider: jest.Mocked<AIProvider>;
+    let processor: MultiStepAIProcessor;
+    let mockProvider: jest.Mocked<AIProvider>;
 
-  beforeEach(() => {
-    mockProvider = {
-      getAnswer: jest.fn(),
-      streamAnswer: jest.fn()
-    };
-    processor = new MultiStepAIProcessor(mockProvider);
-  });
-
-  describe('process', () => {
-    it('should process all steps in order', async () => {
-      const mockStream = async function* () {
-        yield 'test';
-        yield ' response';
-      };
-
-      mockProvider.streamAnswer.mockImplementation(mockStream);
-
-      const generator = processor.process('What does example.com do?', 'example.com');
-      const results: string[] = [];
-
-      for await (const chunk of generator) {
-        results.push(chunk);
-      }
-
-      expect(results).toContain('Analyzing example.com:');
-      expect(results).toContain('\n\nProcessing next step...\n');
-      expect(mockProvider.streamAnswer).toHaveBeenCalledTimes(3); // One for each step
+    beforeEach(() => {
+        mockProvider = {
+            getAnswer: jest.fn(),
+            streamAnswer: jest.fn()
+        };
+        processor = new MultiStepAIProcessor(mockProvider);
     });
 
-    it('should handle errors in steps', async () => {
-      mockProvider.streamAnswer.mockImplementation(() => {
-        throw new Error('API Error');
-      });
+    describe('process', () => {
+        it('should process all steps and return cleaned final answer', async () => {
+            // Arrange
+            const steps = ['Industry analysis', 'Product analysis', 'Final answer'];
+            mockProvider.getAnswer
+                .mockResolvedValueOnce({ text: steps[0] })
+                .mockResolvedValueOnce({ text: steps[1] })
+                .mockResolvedValueOnce({ text: steps[2] });
 
-      const generator = processor.process('test question', 'test.com');
-      await expect(generator.next()).rejects.toThrow('Failed to process step after multiple attempts');
+            // Act
+            const result = await processor.process(
+                'What does example.com do?',
+                'example.com'
+            );
+
+            // Assert
+            expect(mockProvider.getAnswer).toHaveBeenCalledTimes(3);
+            expect(result).toContain('Based on the analysis');
+            expect(result).toContain(steps[0]);
+            expect(result).toContain(steps[1]);
+            expect(result).toContain(steps[2]);
+        });
+
+        it('should clean [x] from final output', async () => {
+            // Arrange
+            mockProvider.getAnswer
+                .mockResolvedValueOnce({ text: 'Step 1 [x] result' })
+                .mockResolvedValueOnce({ text: 'Step 2 result' })
+                .mockResolvedValueOnce({ text: 'Final [x] result' });
+
+            // Act
+            const result = await processor.process(
+                'What does example.com do?',
+                'example.com'
+            );
+
+            // Assert
+            expect(result).not.toContain('[x]');
+            expect(result).toContain('Step 1 result');
+            expect(result).toContain('Final result');
+        });
+
+        it('should retry on failure', async () => {
+            // Arrange
+            mockProvider.getAnswer
+                .mockRejectedValueOnce(new Error('API error'))
+                .mockResolvedValueOnce({ text: 'Success after retry' });
+
+            // Act
+            const result = await processor.process(
+                'What does example.com do?',
+                'example.com'
+            );
+
+            // Assert
+            expect(mockProvider.getAnswer).toHaveBeenCalledTimes(4); // 1 fail + 1 retry + 2 successful steps
+            expect(result).toContain('Success after retry');
+        });
+
+        it('should throw error after max retries', async () => {
+            // Arrange
+            const error = new Error('API error');
+            mockProvider.getAnswer.mockRejectedValue(error);
+
+            // Act & Assert
+            await expect(processor.process(
+                'What does example.com do?',
+                'example.com'
+            )).rejects.toThrow('API error');
+            expect(mockProvider.getAnswer).toHaveBeenCalledTimes(2); // Initial try + 1 retry
+        });
+
+        it('should include question context in prompts', async () => {
+            // Arrange
+            mockProvider.getAnswer.mockResolvedValue({ text: 'Test response' });
+            const testQuestion = 'What does example.com do?';
+
+            // Act
+            await processor.process(testQuestion, 'example.com');
+
+            // Assert
+            const lastCall = mockProvider.getAnswer.mock.calls[2][0];
+            expect(lastCall.question).toContain(testQuestion);
+        });
+
+        it('should accumulate context between steps', async () => {
+            // Arrange
+            mockProvider.getAnswer
+                .mockResolvedValueOnce({ text: 'Step 1 context' })
+                .mockResolvedValueOnce({ text: 'Step 2 context' })
+                .mockResolvedValueOnce({ text: 'Final answer' });
+
+            // Act
+            await processor.process('Test question?', 'example.com');
+
+            // Assert
+            const secondCallContext = mockProvider.getAnswer.mock.calls[1][0].question;
+            expect(secondCallContext).toContain('Step 1 context');
+
+            const thirdCallContext = mockProvider.getAnswer.mock.calls[2][0].question;
+            expect(thirdCallContext).toContain('Step 2 context');
+        });
     });
-  });
-
-  describe('confidence calculation', () => {
-    it('should calculate higher confidence for specific answers', async () => {
-      const mockSpecificStream = async function* () {
-        yield 'Specifically, the company provides exactly 100 services';
-      };
-
-      mockProvider.streamAnswer.mockImplementation(mockSpecificStream);
-
-      const generator = processor.process('What does example.com do?', 'example.com');
-      for await (const _ of generator) { /* consume generator */ }
-
-      // Verify the confidence calculation affected the final result
-      expect(mockProvider.streamAnswer).toHaveBeenCalled();
-    });
-  });
 });

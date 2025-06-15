@@ -23,10 +23,10 @@ export class QuestionController {
   }
 
   public extractDomain(question: string): string | null {
-    const domainRegex = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.(?:[a-zA-Z]{2,})+)/i;
+    const domainRegex = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.(?:[a-zA-Z]{2,})+)/i;
     const match = question.match(domainRegex);
     return match ? match[1].toLowerCase() : null;
-  }
+}
 
   public validateDomain(domain: string): boolean {
     // Check for valid TLD (Top Level Domain)
