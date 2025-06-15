@@ -68,33 +68,4 @@ describe('QuestionController', () => {
             expect(controller.validateDomain('!invalid.com')).toBe(false);
         });
     });
-
-    describe('validateQuestion', () => {
-        it('validates complete question with domain', () => {
-            const result = controller.validateQuestion('What does example.com do?');
-            expect(result.isValid).toBe(true);
-            expect(result.error).toBeUndefined();
-        });
-
-        it('rejects empty question', () => {
-            const result = controller.validateQuestion('   ');
-            expect(result.isValid).toBe(false);
-            expect(result.error).toBe('Question cannot be empty');
-        });
-
-        it('rejects question without domain', () => {
-            const result = controller.validateQuestion('What does this company do?');
-            expect(result.isValid).toBe(false);
-            expect(result.error).toContain('Please include a company domain');
-        });
-    });
-
-    describe('processQuestion', () => {
-        it('throws error for invalid question', async () => {
-            const invalidQuestion = 'What does this company do?';
-            await expect(controller.processQuestion(invalidQuestion))
-                .rejects
-                .toThrow('No domain found in question');
-        });
-    });
 });

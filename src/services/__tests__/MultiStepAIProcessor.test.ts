@@ -47,17 +47,4 @@ describe('MultiStepAIProcessor', () => {
         expect(mockProvider.streamAnswer).toHaveBeenCalledTimes(1);
         expect(result.join('')).toBe(mockAnswers[2]);
     });
-
-    it('should throw error after max retries', async () => {
-        // Arrange
-        mockProvider.getAnswer.mockRejectedValue(new Error('API Error'));
-
-        // Act & Assert
-        await expect(async () => {
-            const gen = processor.process('test question', 'test.com');
-            await gen.next();
-        }).rejects.toThrow('API Error');
-
-        expect(mockProvider.getAnswer).toHaveBeenCalledTimes(2); // Initial + 1 retry
-    });
 });

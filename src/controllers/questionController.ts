@@ -26,7 +26,17 @@ export class QuestionController {
   }
 
   public validateDomain(domain: string): boolean {
-    const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/;
-    return domainRegex.test(domain);
-  }
+        // List of valid TLDs (Top Level Domains)
+        const validTLDs = ['com', 'org', 'net', 'edu', 'gov', 'io', 'ai', 'co'];
+        
+        // Updated regex to support subdomains
+        const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*(\.[a-zA-Z0-9][a-zA-Z0-9-]*)*\.[a-zA-Z]{2,}$/;
+        if (!domainRegex.test(domain)) {
+            return false;
+        }
+
+        // Get the TLD (last part of the domain)
+        const extension = domain.split('.').pop()?.toLowerCase();
+        return extension ? validTLDs.includes(extension) : false;
+    }
 }
