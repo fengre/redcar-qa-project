@@ -8,5 +8,5 @@ export interface ProcessStep {
 }
 
 export interface MultiStepProcessor {
-  process(question: string, domain: string): Promise<string>;
+  process(question: string, domain: string): AsyncGenerator<string, void, unknown>;
 }

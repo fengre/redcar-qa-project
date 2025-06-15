@@ -11,7 +11,7 @@ export class MultiStepAIProcessor implements MultiStepProcessor {
       prompt: "Based on the previous analysis, what are their main products or services?"
     },
     {
-      prompt: "Using all previous information, answer this specific question in a concise, straightforward manner and in plain text with no link references: {question}"
+      prompt: "Using all previous information, answer this specific question in a simple, short, and concise manner, removing link references: {question}"
     }
   ];
 
@@ -19,41 +19,30 @@ export class MultiStepAIProcessor implements MultiStepProcessor {
     this.provider = provider;
   }
 
-  private async processStep(step: ProcessStep, context: string, question: string): Promise<string> {
-    const prompt = step.prompt.replace('{question}', question);
-    const fullPrompt = `${context}\n\n${prompt}`;
-    
-    console.log(`Processing Step: ${step.prompt}`);
-    console.log(`Context: ${context}`);
-    
-    const response = await this.provider.getAnswer({ question: fullPrompt, domain: '' });
-    return response.text;
-  }
-
-  private cleanFinalOutput(text: string): string {
-    return text.replace(/\[x\]/g, '').trim();
-  }
-
-  public async process(question: string, domain: string): Promise<string> {
+  public async *process(question: string, domain: string): AsyncGenerator<string, void, unknown> {
     let context = `Analyzing ${domain}:\n`;
-    console.log(`Initial Context: ${context}`);
-
     const results: string[] = [];
     
-    for (const step of this.steps) {
+    // First, process the preliminary steps
+    for (const step of this.steps.slice(0, -1)) {
       const stepResult = await this.processStepWithRetry(step, context, question);
       results.push(stepResult);
       context += `\n${stepResult}`;
-      console.log(`Updated Context: ${context}`);
     }
 
-    const finalAnswer = results[results.length - 1]
-    const cleanedAnswer = this.cleanFinalOutput(finalAnswer);
+    // For the final step, stream the response directly
+    const finalStep = this.steps[this.steps.length - 1];
+    const finalPrompt = finalStep.prompt.replace('{question}', question);
+    const fullPrompt = `${context}\n\n${finalPrompt}`;
 
-    console.log(`Final Combined Answer: ${finalAnswer}`);
-    console.log(`Cleaned Answer: ${cleanedAnswer}`);
-
-    return cleanedAnswer;
+    // Stream each character from the provider
+    for await (const chunk of this.provider.streamAnswer({ 
+      question: fullPrompt,
+      domain 
+    })) {
+      yield chunk;
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
   }
 
   private async processStepWithRetry(step: ProcessStep, context: string, question: string): Promise<string> {
@@ -71,5 +60,12 @@ export class MultiStepAIProcessor implements MultiStepProcessor {
     }
     
     throw lastError || new Error('Failed to process step after multiple attempts');
+  }
+
+  private async processStep(step: ProcessStep, context: string, question: string): Promise<string> {
+    const prompt = step.prompt.replace('{question}', question);
+    const fullPrompt = `${context}\n\n${prompt}`;
+    const response = await this.provider.getAnswer({ question: fullPrompt, domain: '' });
+    return response.text;
   }
 }

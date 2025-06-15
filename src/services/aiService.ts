@@ -38,7 +38,9 @@ export class AiService {
       throw new Error('Question cannot be empty');
     }
     
-    yield* this.multiStepProcessor.process(question.question, question.domain);
+    for await (const chunk of this.multiStepProcessor.process(question.question, question.domain)) {
+      yield chunk;
+    }
   }
 
   public static getInstance(): AiService {

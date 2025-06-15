@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Question, HistoryItem } from '../../models/types';
+import { HistoryItem } from '../../models/types';
 import { QuestionController } from '../../controllers/questionController';
 import { History } from './History';
 import { MultiStepAIProcessor } from '../../services/MultiStepAIProcessor';
@@ -15,45 +15,44 @@ export const QuestionForm = () => {
   const controller = QuestionController.getInstance();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submitted - starting question processing');
-    setError('');
-    setStreamingText('');
-    setIsLoading(true);
+  e.preventDefault();
+  setError('');
+  setStreamingText('');
+  setIsLoading(true);
 
-    try {
-      const domain = controller.extractDomain(question);
-      if (!domain) {
-        throw new Error('Please include a company domain in your question');
-      }
-      
-      console.log('Creating MultiStepAIProcessor');
-      const processor = new MultiStepAIProcessor(controller.getProvider());
-
-      console.log('Starting processing with:', { question, domain });
-      const result = await processor.process(question, domain); // Changed this line
-      setStreamingText(result);
-
-      const historyItem: HistoryItem = {
-        id: uuidv4(),
-        timestamp: new Date(),
-        question: { question, domain },
-        answer: { text: result }
-      };
-      
-      setHistory(prev => [historyItem, ...prev]);
-    } catch (error: any) {
-      console.error('Error in question processing:', error);
-      setError(error.message || 'Failed to process question');
-    } finally {
-      setIsLoading(false);
+  try {
+    const domain = controller.extractDomain(question);
+    if (!domain) {
+      throw new Error('Please include a company domain in your question');
     }
-  };
 
-  const handleHistorySelect = (item: HistoryItem) => {
-    setQuestion(item.question.question);
-    setStreamingText(item.answer.text);
-  };
+    const processor = new MultiStepAIProcessor(controller.getProvider());
+    let fullText = '';
+
+    // Process and display each chunk immediately
+    const generator = processor.process(question, domain);
+    for await (const chunk of generator) {
+      fullText += chunk;
+      setStreamingText(fullText);
+      // Force a re-render after each chunk
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+
+    // Add to history after completion
+    const historyItem: HistoryItem = {
+      id: uuidv4(),
+      timestamp: new Date(),
+      question: { question, domain },
+      answer: { text: fullText }
+    };
+    
+    setHistory(prev => [historyItem, ...prev]);
+  } catch (error: any) {
+    setError(error.message || 'Failed to process question');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="flex flex-col gap-8">
@@ -97,7 +96,7 @@ export const QuestionForm = () => {
       )}
 
       {history.length > 0 && (
-        <History items={history} onSelect={handleHistorySelect} />
+        <History items={history} onSelect={(item) => setQuestion(item.question.question)} />
       )}
     </div>
   );
