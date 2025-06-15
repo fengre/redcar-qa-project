@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { HistoryItem } from '../../models/types';
-import { QuestionController } from '../../controllers/questionController';
-import { History } from './History';
-import { MultiStepAIProcessor } from '../../services/MultiStepAIProcessor';
+import { QuestionController } from '../../controllers/question-controller';
+import { History } from './history';
+import { MultiStepAIProcessor } from '../../services/multi-step-ai-processor';
 
 export const QuestionForm = () => {
   const [question, setQuestion] = useState('');

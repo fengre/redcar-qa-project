@@ -1,5 +1,5 @@
-import { AIProvider } from './interfaces/AIProvider';
-import { MultiStepProcessor, ProcessStep } from './interfaces/MultiStepProcessor';
+import { AIProvider } from './interfaces/ai-provider.types';
+import { MultiStepProcessor, ProcessStep } from './interfaces/IMultiStepProcessor';
 
 export class MultiStepAIProcessor implements MultiStepProcessor {
   private provider: AIProvider;

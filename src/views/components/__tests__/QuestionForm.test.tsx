@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { QuestionForm } from '../QuestionForm';
-import { QuestionController } from '../../../controllers/questionController';
-import { MultiStepAIProcessor } from '../../../services/MultiStepAIProcessor';
+import { QuestionForm } from '../question-form';
+import { QuestionController } from '../../../controllers/question-controller';
+import { MultiStepAIProcessor } from '../../../services/multi-step-ai-processor';
 
 // Mock dependencies
 jest.mock('../../../controllers/questionController');

@@ -1,4 +1,4 @@
-import { PerplexityProvider } from '../PerplexityProvider';
+import { PerplexityProvider } from '../perplexity-provider';
 import { Question } from '../../../models/types';
 import { TextEncoder } from 'util';
 

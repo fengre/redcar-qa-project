@@ -1,6 +1,6 @@
-import { QuestionController } from '../questionController';
-import { AiService } from '../../services/aiService';
-import { AIProvider } from '../../services/interfaces/AIProvider';
+import { QuestionController } from '../question-controller';
+import { AiService } from '../../services/ai-service';
+import { AIProvider } from '../../services/interfaces/ai-provider.types';
 
 // Mock the entire AiService module
 jest.mock('../../services/aiService');

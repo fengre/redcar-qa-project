@@ -1,4 +1,4 @@
-import { AIProvider } from '../interfaces/AIProvider';
+import { AIProvider } from '../interfaces/ai-provider.types';
 import { Question, Answer } from '../../models/types';
 
 export class PerplexityProvider implements AIProvider {

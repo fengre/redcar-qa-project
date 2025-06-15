@@ -1,5 +1,5 @@
 'use client';
-import { QuestionForm } from '../views/components/QuestionForm';
+import { QuestionForm } from '../views/components/question-form';
 
 export default function Home() {
   return (

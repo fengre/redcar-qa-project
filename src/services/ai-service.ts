@@ -1,5 +1,5 @@
-import { AIProvider } from './interfaces/AIProvider';
-import { PerplexityProvider } from './providers/PerplexityProvider';
+import { AIProvider } from './interfaces/ai-provider.types';
+import { PerplexityProvider } from './providers/perplexity-provider';
 
 export class AiService {
   private static instance: AiService;

@@ -1,5 +1,5 @@
-import { MultiStepAIProcessor } from '../MultiStepAIProcessor';
-import { AIProvider } from '../interfaces/AIProvider';
+import { MultiStepAIProcessor } from '../multi-step-ai-processor';
+import { AIProvider } from '../interfaces/ai-provider.types';
 
 describe('MultiStepAIProcessor', () => {
     let processor: MultiStepAIProcessor;

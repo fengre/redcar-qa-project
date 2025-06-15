@@ -1,5 +1,5 @@
-import { AIProvider } from '../services/interfaces/AIProvider';
-import { AiService } from '../services/aiService';
+import { AIProvider } from '../services/interfaces/ai-provider.types';
+import { AiService } from '../services/ai-service';
 
 export class QuestionController {
   private static instance: QuestionController;
