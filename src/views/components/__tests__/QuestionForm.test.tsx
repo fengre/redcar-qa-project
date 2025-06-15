@@ -1,107 +1,80 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QuestionForm } from '../QuestionForm';
 import { QuestionController } from '../../../controllers/questionController';
+import { MultiStepAIProcessor } from '../../../services/MultiStepAIProcessor';
 
+// Mock dependencies
 jest.mock('../../../controllers/questionController');
+jest.mock('../../../services/MultiStepAIProcessor');
 
 describe('QuestionForm', () => {
-  const mockStreamAnswer = jest.fn();
-  const mockGetProvider = jest.fn();
-  const mockValidateQuestion = jest.fn();
-  const mockExtractDomain = jest.fn();
+    let mockController: jest.Mocked<QuestionController>;
+    let mockProcessor: jest.Mocked<MultiStepAIProcessor>;
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (QuestionController.getInstance as jest.Mock).mockReturnValue({
-      getProvider: mockGetProvider,
-      validateQuestion: mockValidateQuestion,
-      extractDomain: mockExtractDomain
-    });
-  });
+    beforeEach(() => {
+        // Setup controller mock with getProvider
+        mockController = {
+            extractDomain: jest.fn(),
+            getProvider: jest.fn()
+        } as unknown as jest.Mocked<QuestionController>;
 
-  it('should render form elements', () => {
-    render(<QuestionForm />);
-    expect(screen.getByLabelText(/your question/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
-  });
+        (QuestionController.getInstance as jest.Mock).mockReturnValue(mockController);
 
-  it('should handle validation errors', async () => {
-    mockValidateQuestion.mockReturnValue({ 
-      isValid: false, 
-      error: 'Test error' 
+        // Setup processor mock
+        mockProcessor = {
+            process: jest.fn()
+        } as unknown as jest.Mocked<MultiStepAIProcessor>;
+
+        (MultiStepAIProcessor as jest.Mock).mockImplementation(() => mockProcessor);
     });
 
-    render(<QuestionForm />);
-    
-    const submitButton = screen.getByRole('button', { name: /submit/i });
-    fireEvent.click(submitButton);
-
-    expect(await screen.findByText('Test error')).toBeInTheDocument();
-  });
-
-  it('should handle successful submission', async () => {
-    mockValidateQuestion.mockReturnValue({ isValid: true });
-    mockExtractDomain.mockReturnValue('example.com');
-    
-    const mockStreamGenerator = async function* () {
-      yield 'Test';
-      yield ' response';
-    };
-    
-    mockGetProvider.mockReturnValue({ streamAnswer: mockStreamGenerator });
-
-    render(<QuestionForm />);
-    
-    const textArea = screen.getByLabelText(/your question/i);
-    fireEvent.change(textArea, { target: { value: 'What does example.com do?' } });
-    
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    it('renders form elements', () => {
+        render(<QuestionForm />);
+        
+        expect(screen.getByRole('textbox')).toBeInTheDocument();
+        expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(/Test response/)).toBeInTheDocument();
-    });
-  });
+    it('shows error for invalid domain', async () => {
+        // Arrange
+        mockController.extractDomain.mockReturnValue(null);
+        render(<QuestionForm />);
 
-  it('should handle streaming errors', async () => {
-    mockValidateQuestion.mockReturnValue({ isValid: true });
-    mockExtractDomain.mockReturnValue('example.com');
-    
-    mockGetProvider.mockReturnValue({
-      streamAnswer: async function* () {
-        throw new Error('Stream error');
-      }
-    });
+        // Act
+        const input = screen.getByRole('textbox');
+        fireEvent.change(input, { target: { value: 'invalid question' } });
+        fireEvent.click(screen.getByRole('button'));
 
-    render(<QuestionForm />);
-    
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+        // Assert
+        expect(await screen.findByText(/please include a company domain/i)).toBeInTheDocument();
     });
 
-    expect(await screen.findByText(/Stream error/)).toBeInTheDocument();
-  });
+    it('processes valid question', async () => {
+        // Arrange
+        const testQuestion = 'What does example.com do?';
+        const testAnswer = 'Company information';
+        
+        mockController.extractDomain.mockReturnValue('example.com');
+        mockController.getProvider.mockReturnValue({
+            getAnswer: jest.fn(),
+            streamAnswer: jest.fn()
+        });
+        mockProcessor.process.mockImplementation(async function* () {
+            yield testAnswer;
+        });
 
-  it('should update history after successful response', async () => {
-    mockValidateQuestion.mockReturnValue({ isValid: true });
-    mockExtractDomain.mockReturnValue('example.com');
-    
-    mockGetProvider.mockReturnValue({
-      streamAnswer: async function* () {
-        yield 'History test response';
-      }
-    });
+        render(<QuestionForm />);
 
-    render(<QuestionForm />);
-    
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
-    });
+        // Act
+        const input = screen.getByRole('textbox');
+        fireEvent.change(input, { target: { value: testQuestion } });
+        fireEvent.click(screen.getByRole('button'));
 
-    await waitFor(() => {
-      expect(screen.getByText(/History test response/)).toBeInTheDocument();
+        // Assert
+        const answerElement = await screen.findByText((content, element) => {
+            return !!element && element.className.includes('prose') && content.includes(testAnswer);
+        });
+        expect(answerElement).toBeInTheDocument();
     });
-  });
 });

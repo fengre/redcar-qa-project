@@ -1,5 +1,6 @@
 import { AIProvider } from '../interfaces/AIProvider';
 import { Question, Answer } from '../../models/types';
+import { TextDecoder } from 'util';
 
 export class PerplexityProvider implements AIProvider {
   private apiKey: string;

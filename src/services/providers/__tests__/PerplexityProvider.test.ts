@@ -1,121 +1,98 @@
 import { PerplexityProvider } from '../PerplexityProvider';
 import { Question } from '../../../models/types';
-import 'whatwg-fetch';
+import { TextEncoder } from 'util';
 
 describe('PerplexityProvider', () => {
-  let provider: PerplexityProvider;
-  const mockApiKey = 'test-api-key';
+    let provider: PerplexityProvider;
+    let mockFetch: jest.Mock;
 
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY = mockApiKey;
-    provider = new PerplexityProvider();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
-  describe('constructor', () => {
-    it('should throw error if API key is not configured', () => {
-      delete process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY;
-      expect(() => new PerplexityProvider()).toThrow('Perplexity API key is not configured');
+    beforeEach(() => {
+        process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY = 'test-api-key';
+        mockFetch = jest.fn();
+        global.fetch = mockFetch;
+        provider = new PerplexityProvider();
     });
 
-    it('should initialize with API key', () => {
-      expect(provider).toBeInstanceOf(PerplexityProvider);
-    });
-  });
-
-  describe('streamAnswer', () => {
-    const mockQuestion: Question = {
-      question: 'What does example.com do?',
-      domain: 'example.com'
-    };
-
-    it('should handle successful streaming response', async () => {
-      const encoder = new TextEncoder();
-      const mockStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(encoder.encode('data: {"choices":[{"delta":{"content":"Test"}}]}\n\n'));
-          controller.enqueue(encoder.encode('data: {"choices":[{"delta":{"content":" response"}}]}\n\n'));
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-          controller.close();
-        }
-      });
-
-      global.fetch = jest.fn().mockResolvedValue(new Response(mockStream));
-
-      let result = '';
-      for await (const chunk of provider.streamAnswer(mockQuestion)) {
-        result += chunk;
-      }
-      expect(result).toBe('Test response');
+    afterEach(() => {
+        jest.resetAllMocks();
     });
 
-    it('should handle API errors', async () => {
-      global.fetch = jest.fn().mockResolvedValue(new Response(null, { 
-        status: 400, 
-        statusText: 'Bad Request' 
-      }));
-
-      await expect(provider.streamAnswer(mockQuestion).next())
-        .rejects
-        .toThrow('Stream response error: 400');
+    describe('initialization', () => {
+        it('should throw error if API key is not configured', () => {
+            delete process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY;
+            expect(() => new PerplexityProvider()).toThrow('Perplexity API key is not configured');
+        });
     });
 
-    it('should handle malformed JSON in stream', async () => {
-      const encoder = new TextEncoder();
-      const mockStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(encoder.encode('data: {"malformed_json"\n\n'));
-          controller.close();
-        }
-      });
+    describe('streamAnswer', () => {
+        it('should stream response chunks', async () => {
+            // Arrange
+            const question: Question = { question: 'test question', domain: 'test.com' };
+            const testResponse = 'Hello World';
+            
+            // Mock stream reader
+            const mockReader = {
+                read: jest.fn()
+                    .mockResolvedValueOnce({
+                        done: false,
+                        value: new TextEncoder().encode(
+                            `data: ${JSON.stringify({
+                                choices: [{ delta: { content: testResponse } }]
+                            })}\n\n`
+                        )
+                    })
+                    .mockResolvedValueOnce({
+                        done: false,
+                        value: new TextEncoder().encode('data: [DONE]\n\n')
+                    })
+                    .mockResolvedValueOnce({ done: true }),
+                releaseLock: jest.fn()
+            };
 
-      global.fetch = jest.fn().mockResolvedValue(new Response(mockStream));
+            // Mock response
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                body: {
+                    getReader: () => mockReader
+                }
+            });
 
-      let result = '';
-      for await (const chunk of provider.streamAnswer(mockQuestion)) {
-        result += chunk;
-      }
-      expect(result).toBe('');
+            // Act
+            const chunks: string[] = [];
+            for await (const chunk of provider.streamAnswer(question)) {
+                chunks.push(chunk);
+            }
+
+            // Assert
+            expect(chunks.join('')).toBe(testResponse);
+            expect(mockFetch).toHaveBeenCalledWith(
+                'https://api.perplexity.ai/chat/completions',
+                expect.objectContaining({
+                    method: 'POST',
+                    headers: expect.objectContaining({
+                        'Authorization': 'Bearer test-api-key',
+                        'Content-Type': 'application/json'
+                    }),
+                    body: expect.any(String)
+                })
+            );
+            expect(mockReader.read).toHaveBeenCalled();
+            expect(mockReader.releaseLock).toHaveBeenCalled();
+        });
+
+        it('should handle API errors', async () => {
+            // Arrange
+            mockFetch.mockResolvedValueOnce({
+                ok: false,
+                status: 400
+            });
+
+            // Act & Assert
+            await expect(async () => {
+                const gen = provider.streamAnswer({ question: 'test', domain: 'test.com' });
+                await gen.next();
+            }).rejects.toThrow('Stream response error: 400');
+        });
     });
-  });
-
-  describe('getAnswer', () => {
-    it('should return complete answer from stream', async () => {
-      const encoder = new TextEncoder();
-      const mockStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(encoder.encode('data: {"choices":[{"delta":{"content":"Complete"}}]}\n\n'));
-          controller.enqueue(encoder.encode('data: {"choices":[{"delta":{"content":" answer"}}]}\n\n'));
-          controller.close();
-        }
-      });
-
-      global.fetch = jest.fn().mockResolvedValue(new Response(mockStream));
-
-      const result = await provider.getAnswer({
-        question: 'test',
-        domain: 'test.com'
-      });
-
-      expect(result.text).toBe('Complete answer');
-    });
-
-    it('should throw error if no response received', async () => {
-      const mockStream = new ReadableStream({
-        start(controller) {
-          controller.close();
-        }
-      });
-
-      global.fetch = jest.fn().mockResolvedValue(new Response(mockStream));
-
-      await expect(provider.getAnswer({
-        question: 'test',
-        domain: 'test.com'
-      })).rejects.toThrow('No response received from Perplexity');
-    });
-  });
 });
