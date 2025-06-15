@@ -5,8 +5,8 @@ import { QuestionController } from '../../../controllers/question-controller';
 import { MultiStepAIProcessor } from '../../../services/multi-step-ai-processor';
 
 // Mock dependencies
-jest.mock('../../../controllers/questionController');
-jest.mock('../../../services/MultiStepAIProcessor');
+jest.mock('../../../controllers/question-controller');
+jest.mock('../../../services/multi-step-ai-processor');
 
 describe('QuestionForm', () => {
     let mockController: jest.Mocked<QuestionController>;

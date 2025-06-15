@@ -3,7 +3,7 @@ import { AiService } from '../../services/ai-service';
 import { AIProvider } from '../../services/interfaces/ai-provider.types';
 
 // Mock the entire AiService module
-jest.mock('../../services/aiService');
+jest.mock('../../services/ai-service');
 
 describe('QuestionController', () => {
     let controller: QuestionController;
