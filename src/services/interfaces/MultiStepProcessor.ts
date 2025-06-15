@@ -1,8 +1,3 @@
-export interface StepResult {
-  text: string;
-  confidence: number;
-}
-
 export interface ProcessStep {
   prompt: string;
 }

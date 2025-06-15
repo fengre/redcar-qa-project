@@ -15,52 +15,43 @@ export const QuestionForm = () => {
   const controller = QuestionController.getInstance();
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
-  setStreamingText('');
-  setIsLoading(true);
+    e.preventDefault();
+    setError('');
+    setStreamingText('');
+    setIsLoading(true);
 
-  try {
-    const domain = controller.extractDomain(question);
-    if (!domain) {
-      throw new Error('Please include a company domain in your question');
+    try {
+      const domain = controller.extractDomain(question);
+      if (!domain) {
+        throw new Error('Please include a company domain in your question');
+      }
+
+      const processor = new MultiStepAIProcessor(controller.getProvider());
+      let fullText = '';
+
+      for await (const chunk of processor.process(question, domain)) {
+        fullText += chunk;
+        setStreamingText(fullText);
+      }
+
+      setHistory(prev => [{
+        id: uuidv4(),
+        timestamp: new Date(),
+        question: { question, domain },
+        answer: { text: fullText }
+      }, ...prev]);
+    } catch (error: any) {
+      setError(error.message || 'Failed to process question');
+    } finally {
+      setIsLoading(false);
     }
-
-    const processor = new MultiStepAIProcessor(controller.getProvider());
-    let fullText = '';
-
-    // Process and display each chunk immediately
-    const generator = processor.process(question, domain);
-    for await (const chunk of generator) {
-      fullText += chunk;
-      setStreamingText(fullText);
-      // Force a re-render after each chunk
-      await new Promise(resolve => setTimeout(resolve, 0));
-    }
-
-    // Add to history after completion
-    const historyItem: HistoryItem = {
-      id: uuidv4(),
-      timestamp: new Date(),
-      question: { question, domain },
-      answer: { text: fullText }
-    };
-    
-    setHistory(prev => [historyItem, ...prev]);
-  } catch (error: any) {
-    setError(error.message || 'Failed to process question');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <div className="flex flex-col gap-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <label htmlFor="question" className="font-medium">
-            Your Question:
-          </label>
+          <label htmlFor="question" className="font-medium">Your Question:</label>
           <textarea
             id="question"
             value={question}
@@ -69,9 +60,7 @@ export const QuestionForm = () => {
             className={`border rounded-md p-2 h-32 ${error ? 'border-red-500' : ''}`}
             required
           />
-          {error && (
-            <span className="text-red-500 text-sm mt-1">{error}</span>
-          )}
+          {error && <span className="text-red-500 text-sm mt-1">{error}</span>}
         </div>
 
         <button
@@ -88,16 +77,12 @@ export const QuestionForm = () => {
           <h2 className="text-xl font-bold mb-4">Answer:</h2>
           <div className="prose max-w-none whitespace-pre-wrap">
             {streamingText}
-            {isLoading && (
-              <span className="inline-block w-2 h-4 ml-1 bg-foreground animate-pulse" />
-            )}
+            {isLoading && <span className="inline-block w-2 h-4 ml-1 bg-foreground animate-pulse" />}
           </div>
         </div>
       )}
 
-      {history.length > 0 && (
-        <History items={history} onSelect={(item) => setQuestion(item.question.question)} />
-      )}
+      {history.length > 0 && <History items={history} onSelect={(item) => setQuestion(item.question.question)} />}
     </div>
   );
 };
