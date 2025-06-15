@@ -1,7 +1,7 @@
-import { AIProvider } from '../interfaces/ai-provider.types';
+import { IAiProvider } from '../interfaces/ai-provider.types';
 import { Question, Answer } from '../../models/types';
 
-export class PerplexityProvider implements AIProvider {
+export class PerplexityProvider implements IAiProvider {
   private apiKey: string;
   private baseUrl = 'https://api.perplexity.ai/chat/completions';
 

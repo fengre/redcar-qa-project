@@ -1,4 +1,4 @@
-import { AIProvider } from '../services/interfaces/ai-provider.types';
+import { IAiProvider } from '../services/interfaces/ai-provider.types';
 import { AiService } from '../services/ai-service';
 
 export class QuestionController {
@@ -16,7 +16,7 @@ export class QuestionController {
     return QuestionController.instance;
   }
 
-  public getProvider(): AIProvider {
+  public getProvider(): IAiProvider {
     return this.aiService.getProvider();
   }
 

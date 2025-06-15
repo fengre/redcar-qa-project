@@ -1,9 +1,9 @@
 import { MultiStepAIProcessor } from '../multi-step-ai-processor';
-import { AIProvider } from '../interfaces/ai-provider.types';
+import { IAiProvider } from '../interfaces/ai-provider.types';
 
 describe('MultiStepAIProcessor', () => {
     let processor: MultiStepAIProcessor;
-    let mockProvider: jest.Mocked<AIProvider>;
+    let mockProvider: jest.Mocked<IAiProvider>;
 
     beforeEach(() => {
         mockProvider = {

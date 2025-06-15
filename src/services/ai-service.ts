@@ -1,9 +1,9 @@
-import { AIProvider } from './interfaces/ai-provider.types';
+import { IAiProvider } from './interfaces/ai-provider.types';
 import { PerplexityProvider } from './providers/perplexity-provider';
 
 export class AiService {
   private static instance: AiService;
-  private provider: AIProvider;
+  private provider: IAiProvider;
 
   private constructor() {
     this.provider = new PerplexityProvider();
@@ -16,7 +16,7 @@ export class AiService {
     return AiService.instance;
   }
 
-  public getProvider(): AIProvider {
+  public getProvider(): IAiProvider {
     return this.provider;
   }
 }

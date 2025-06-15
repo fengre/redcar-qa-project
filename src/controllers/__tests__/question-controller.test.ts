@@ -1,25 +1,12 @@
 import { QuestionController } from '../question-controller';
-import { AiService } from '../../services/ai-service';
-import { AIProvider } from '../../services/interfaces/ai-provider.types';
 
 // Mock the entire AiService module
 jest.mock('../../services/ai-service');
 
 describe('QuestionController', () => {
     let controller: QuestionController;
-    let mockAiService: { getAnswer: jest.Mock };
 
     beforeEach(() => {
-        // Simplified mock with just what we need
-        mockAiService = {
-            getAnswer: jest.fn().mockImplementation(async (question) => {
-                // Default mock implementation
-                return { text: 'Default mock response' };
-            })
-        };
-
-        // Setup static getInstance mock
-        (AiService.getInstance as jest.Mock).mockReturnValue(mockAiService);
         
         // Get fresh controller instance
         controller = QuestionController.getInstance();

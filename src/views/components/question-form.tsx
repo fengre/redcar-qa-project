@@ -40,8 +40,12 @@ export const QuestionForm = () => {
         question: { question, domain },
         answer: { text: fullText }
       }, ...prev]);
-    } catch (error: any) {
-      setError(error.message || 'Failed to process question');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message || 'Failed to process question');
+      } else {
+        setError('Failed to process question');
+      }
     } finally {
       setIsLoading(false);
     }

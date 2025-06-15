@@ -1,6 +1,4 @@
 import { PerplexityProvider } from '../perplexity-provider';
-import { Question } from '../../../models/types';
-import { TextEncoder } from 'util';
 
 describe('PerplexityProvider', () => {
     let provider: PerplexityProvider;

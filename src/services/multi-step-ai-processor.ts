@@ -1,9 +1,9 @@
-import { AIProvider } from './interfaces/ai-provider.types';
-import { MultiStepProcessor, ProcessStep } from './interfaces/IMultiStepProcessor';
+import { IAiProvider } from './interfaces/ai-provider.types';
+import { IMultiStepProcessor, IProcessStep } from './interfaces/multi-step-processor.types';
 
-export class MultiStepAIProcessor implements MultiStepProcessor {
-  private provider: AIProvider;
-  private steps: ProcessStep[] = [
+export class MultiStepAIProcessor implements IMultiStepProcessor {
+  private provider: IAiProvider;
+  private steps: IProcessStep[] = [
     {
       prompt: "First, analyze the company based on the domain. What industry are they in?"
     },
@@ -15,7 +15,7 @@ export class MultiStepAIProcessor implements MultiStepProcessor {
     }
   ];
 
-  constructor(provider: AIProvider) {
+  constructor(provider: IAiProvider) {
     this.provider = provider;
   }
 
