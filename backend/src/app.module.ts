@@ -4,7 +4,7 @@ import { ApiModule } from './api/api.module';
 import { AiModule } from './ai/ai.module';
 import { DatabaseModule } from './database/database.module';
 import { AppController } from './app.controller';
-import { CoreModule } from './core.module';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -12,10 +12,10 @@ import { CoreModule } from './core.module';
       isGlobal: true,
     }),
     DatabaseModule,
-    CoreModule,
     ApiModule,
     AiModule,
   ],
   controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {} 

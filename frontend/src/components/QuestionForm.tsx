@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { HistoryItem } from '../models/types';
-import { ApiService } from '../services/api-service';
-import { DomainService } from '../services/domain-service';
+import { HistoryItem, extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from '../api';
 import { History } from './History';
 
 export const QuestionForm = () => {
@@ -11,17 +9,14 @@ export const QuestionForm = () => {
   const [error, setError] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  const apiService = ApiService.getInstance();
-  const domainService = DomainService.getInstance();
-
   const loadHistory = useCallback(async () => {
     try {
-      const historyData = await apiService.getHistory();
+      const historyData = await getHistory();
       setHistory(historyData);
     } catch (error) {
       console.error('Failed to load history:', error);
     }
-  }, [apiService]);
+  }, []);
 
   // Load history on component mount
   useEffect(() => {
@@ -35,17 +30,17 @@ export const QuestionForm = () => {
     setIsLoading(true);
 
     try {
-      const domain = domainService.extractDomain(question);
+      const domain = extractDomain(question);
       if (!domain) {
         throw new Error('Please include a company domain in your question');
       }
 
-      if (!domainService.validateDomain(domain)) {
+      if (!validateDomain(domain)) {
         throw new Error('Invalid domain format');
       }
 
       // Get streaming response from backend
-      const stream = await apiService.analyzeQuestion(question);
+      const stream = await analyzeQuestion(question);
       const reader = stream.getReader();
       const decoder = new TextDecoder();
       let fullText = '';
@@ -60,7 +55,7 @@ export const QuestionForm = () => {
       }
 
       // Save to history
-      const historyItem = await apiService.saveHistory(question, domain, fullText);
+      const historyItem = await saveHistory(question, domain, fullText);
       setHistory(prev => [historyItem, ...prev]);
     } catch (error: unknown) {
       if (error instanceof Error) {

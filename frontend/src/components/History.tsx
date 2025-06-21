@@ -1,4 +1,4 @@
-import { HistoryItem } from '../models/types';
+import { HistoryItem } from '../api';
 
 interface HistoryProps {
   items: HistoryItem[];

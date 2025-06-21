@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Res, HttpStatus, BadRequestException, Logger } from '@nestjs/common';
 import { Response } from 'express';
-import { AppService } from '../app.service';
+import { DomainService } from './domain.service';
 import { MultiStepProcessor } from '../ai/multi-step.processor';
 import { AnalyzeQuestionDto } from './question.dto';
 
@@ -9,7 +9,7 @@ export class QuestionsController {
   private readonly logger = new Logger(QuestionsController.name);
 
   constructor(
-    private readonly appService: AppService,
+    private readonly domainService: DomainService,
     private readonly multiStepProcessor: MultiStepProcessor,
   ) {}
 
@@ -18,14 +18,14 @@ export class QuestionsController {
     try {
       this.logger.log(`Received question: ${analyzeDto.question}`);
       
-      const domain = this.appService.extractDomain(analyzeDto.question);
+      const domain = this.domainService.extractDomain(analyzeDto.question);
       this.logger.log(`Extracted domain: ${domain}`);
       
       if (!domain) {
         throw new BadRequestException('Please include a company domain in your question');
       }
 
-      if (!this.appService.validateDomain(domain)) {
+      if (!this.domainService.validateDomain(domain)) {
         throw new BadRequestException('Invalid domain format');
       }
 

@@ -5,16 +5,15 @@ import { HistoryController } from './history.controller';
 import { HistoryService } from './history.service';
 import { HistoryItem } from './history.entity';
 import { AiModule } from '../ai/ai.module';
-import { CoreModule } from '../core.module';
+import { DomainService } from './domain.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([HistoryItem]),
     AiModule,
-    CoreModule,
   ],
   controllers: [QuestionsController, HistoryController],
-  providers: [HistoryService],
+  providers: [HistoryService, DomainService],
   exports: [HistoryService],
 })
 export class ApiModule {} 

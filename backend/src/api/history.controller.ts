@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { HistoryService } from './history.service';
+import { SaveHistoryDto } from './history.dto';
 
 @Controller('history')
 export class HistoryController {
@@ -11,7 +12,7 @@ export class HistoryController {
   }
 
   @Post()
-  async saveHistory(@Body() data: { question: string; domain: string; answer: string }) {
+  async saveHistory(@Body() data: SaveHistoryDto) {
     return this.historyService.saveHistory(data.question, data.domain, data.answer);
   }
 } 
