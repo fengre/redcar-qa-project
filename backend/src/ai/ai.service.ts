@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { IAiProvider } from './interfaces/ai-provider.interface';
-import { PerplexityProvider } from './providers/perplexity.provider';
+import { IAiProvider } from './ai-provider.interface';
+import { PerplexityProvider } from './perplexity.provider';
 
 @Injectable()
 export class AiService {

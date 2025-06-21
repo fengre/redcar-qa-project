@@ -2,7 +2,7 @@ import { Controller, Post, Body, Res, HttpStatus, BadRequestException, Logger } 
 import { Response } from 'express';
 import { AppService } from '../app.service';
 import { MultiStepProcessor } from '../ai/multi-step.processor';
-import { AnalyzeQuestionDto } from '../dto/question.dto';
+import { AnalyzeQuestionDto } from './question.dto';
 
 @Controller('questions')
 export class QuestionsController {

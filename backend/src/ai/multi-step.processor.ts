@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { IAiProvider, Question } from './interfaces/ai-provider.interface';
+import { Injectable, Inject } from '@nestjs/common';
+import { IAiProvider } from './ai-provider.interface';
 
 export interface ProcessStep {
   prompt: string;
@@ -23,25 +23,19 @@ export class MultiStepProcessor implements IMultiStepProcessor {
     }
   ];
 
-  constructor(private provider: IAiProvider) {}
+  constructor(@Inject('IAiProvider') private provider: IAiProvider) {}
 
   public async *process(question: string, domain: string): AsyncGenerator<string, void, unknown> {
     let context = `Analyzing ${domain}:\n`;
     
     for (const step of this.steps.slice(0, -1)) {
       const prompt = step.prompt.replace('{question}', question);
-      const response = await this.provider.getAnswer({ 
-        question: `${context}\n\n${prompt}`,
-        domain: ''
-      });
-      context += `\n${response.text}`;
+      const response = await this.provider.analyze(`${context}\n\n${prompt}`, '');
+      context += `\n${response}`;
     }
 
     const finalPrompt = this.steps[this.steps.length - 1].prompt.replace('{question}', question);
-    for await (const chunk of this.provider.streamAnswer({ 
-      question: `${context}\n\n${finalPrompt}`,
-      domain
-    })) {
+    for await (const chunk of this.provider.streamAnalyze(`${context}\n\n${finalPrompt}`, domain)) {
       yield chunk;
     }
   }

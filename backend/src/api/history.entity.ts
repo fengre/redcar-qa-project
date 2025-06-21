@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity('history_item')
 export class HistoryItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
+  @Column()
   question: string;
 
-  @Column('text')
+  @Column()
   domain: string;
 
   @Column('text')
