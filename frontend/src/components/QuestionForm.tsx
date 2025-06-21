@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { HistoryItem } from '../models/types';
 import { ApiService } from '../services/api-service';
 import { DomainService } from '../services/domain-service';
@@ -14,19 +14,19 @@ export const QuestionForm = () => {
   const apiService = ApiService.getInstance();
   const domainService = DomainService.getInstance();
 
-  // Load history on component mount
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
       const historyData = await apiService.getHistory();
       setHistory(historyData);
     } catch (error) {
       console.error('Failed to load history:', error);
     }
-  };
+  }, [apiService]);
+
+  // Load history on component mount
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +98,7 @@ export const QuestionForm = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-full bg-foreground text-background py-2 px-4 hover:bg-[#383838] disabled:opacity-50"
+          className="rounded-full bg-gray-700 text-white py-2 px-4 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
           {isLoading ? 'Processing...' : 'Submit Question'}
         </button>
@@ -109,7 +109,7 @@ export const QuestionForm = () => {
           <h2 className="text-xl font-bold mb-4">Answer:</h2>
           <div className="prose max-w-none whitespace-pre-wrap">
             {streamingText}
-            {isLoading && <span className="inline-block w-2 h-4 ml-1 bg-foreground animate-pulse" />}
+            {isLoading && <span className="inline-block w-2 h-4 ml-1 bg-gray-700 animate-pulse" />}
           </div>
         </div>
       )}
