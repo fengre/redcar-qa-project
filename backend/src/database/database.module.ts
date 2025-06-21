@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HistoryItem } from '../common/entities/history.entity';
+import { HistoryItem } from '../interfaces/history.entity';
 
 @Module({
   imports: [

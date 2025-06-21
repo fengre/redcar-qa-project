@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { HistoryService } from './history.service';
-import { HistoryItem } from '../common/entities/history.entity';
+import { HistoryItem } from '../interfaces/history.entity';
 
 @Controller('history')
 export class HistoryController {

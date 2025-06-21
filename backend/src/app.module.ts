@@ -5,6 +5,7 @@ import { HistoryModule } from './history/history.module';
 import { AiModule } from './ai/ai.module';
 import { DatabaseModule } from './database/database.module';
 import { AppController } from './app.controller';
+import { CoreModule } from './core.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AppController } from './app.controller';
       isGlobal: true,
     }),
     DatabaseModule,
+    CoreModule,
     QuestionsModule,
     HistoryModule,
     AiModule,

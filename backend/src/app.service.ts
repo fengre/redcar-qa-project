@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class QuestionsService {
+export class AppService {
+  getHello(): string {
+    return 'Company Question Analyzer API is running!';
+  }
+
   extractDomain(question: string): string | null {
     const domainMatch = question.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})/i);
     return domainMatch ? domainMatch[1].toLowerCase() : null;
