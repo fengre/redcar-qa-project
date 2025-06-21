@@ -75,6 +75,8 @@ export const QuestionForm = () => {
 
   const handleHistorySelect = (item: HistoryItem) => {
     setQuestion(item.question.question);
+    setStreamingText(item.answer.text);
+    setError('');
   };
 
   return (
