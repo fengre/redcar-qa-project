@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { HistoryItem } from '../../models/types';
-import { ApiService } from '../../services/api-service';
-import { DomainService } from '../../services/domain-service';
-import { History } from './history';
+import { HistoryItem } from '../models/types';
+import { ApiService } from '../services/api-service';
+import { DomainService } from '../services/domain-service';
+import { History } from './History';
 
 export const QuestionForm = () => {
   const [question, setQuestion] = useState('');
@@ -122,4 +122,4 @@ export const QuestionForm = () => {
       )}
     </div>
   );
-};
+}; 
