@@ -3,15 +3,9 @@ import { HistoryItem } from '../../models/types';
 interface HistoryProps {
   items: HistoryItem[];
   onSelect: (item: HistoryItem) => void;
-  onDelete: (id: string) => Promise<void>;
 }
 
-export const History: React.FC<HistoryProps> = ({ items, onSelect, onDelete }) => {
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    await onDelete(id);
-  };
-
+export const History: React.FC<HistoryProps> = ({ items, onSelect }) => {
   return (
     <div className="mt-8">
       <h2 className="text-xl font-bold mb-4">History</h2>
@@ -20,14 +14,8 @@ export const History: React.FC<HistoryProps> = ({ items, onSelect, onDelete }) =
           <div
             key={item.id}
             onClick={() => onSelect(item)}
-            className="border rounded-md p-4 hover:bg-gray-50 cursor-pointer relative"
+            className="border rounded-md p-4 hover:bg-gray-50 cursor-pointer"
           >
-            <button
-              onClick={(e) => handleDelete(e, item.id)}
-              className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
-            >
-              ×
-            </button>
             <div className="flex justify-between items-start mb-2">
               <p className="font-medium">{item.question.question}</p>
               <span className="text-sm text-gray-500">
@@ -40,4 +28,4 @@ export const History: React.FC<HistoryProps> = ({ items, onSelect, onDelete }) =
       </div>
     </div>
   );
-}
+};

@@ -24,8 +24,4 @@ export class HistoryService {
       order: { timestamp: 'DESC' },
     });
   }
-
-  async deleteHistory(id: string): Promise<void> {
-    await this.historyRepository.delete(id);
-  }
 } 

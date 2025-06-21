@@ -68,14 +68,4 @@ export class ApiService {
       answer: { text: data.answer },
     };
   }
-
-  async deleteHistory(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/history/${id}`, {
-      method: 'DELETE',
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete history item');
-    }
-  }
 } 

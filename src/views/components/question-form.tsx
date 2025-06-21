@@ -77,15 +77,6 @@ export const QuestionForm = () => {
     setQuestion(item.question.question);
   };
 
-  const handleHistoryDelete = async (id: string) => {
-    try {
-      await apiService.deleteHistory(id);
-      setHistory(prev => prev.filter(item => item.id !== id));
-    } catch (error) {
-      console.error('Failed to delete history item:', error);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -125,7 +116,6 @@ export const QuestionForm = () => {
         <History 
           items={history} 
           onSelect={handleHistorySelect}
-          onDelete={handleHistoryDelete}
         />
       )}
     </div>
