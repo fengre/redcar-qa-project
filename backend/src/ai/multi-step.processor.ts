@@ -13,13 +13,13 @@ export interface IMultiStepProcessor {
 export class MultiStepProcessor implements IMultiStepProcessor {
   private steps: ProcessStep[] = [
     {
-      prompt: "First, analyze the company based on the domain. What industry are they in?"
+      prompt: "First, analyze the company based on the domain. Is it a legitimate company and website? If not, return 'false'. If it is, return 'true'."
     },
     {
-      prompt: "Based on the previous analysis, what are their main products or services?"
+      prompt: "If the previous response is true, give some background knowledge on what industry the company is in and what the main products or services are. If the previous response is false, return 'false'."
     },
     {
-      prompt: "Using all previous information, answer this specific question in a very short, simple, and concise manner, while also removing link references: {question}"
+      prompt: "If the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner, while also removing link references: {question}. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website."
     }
   ];
 
