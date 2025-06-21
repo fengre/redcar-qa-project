@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { useState, useEffect } from 'react';
 import { HistoryItem } from '../../models/types';
-import { QuestionController } from '../../controllers/question-controller';
+import { ApiService } from '../../services/api-service';
+import { DomainService } from '../../services/domain-service';
 import { History } from './history';
-import { MultiStepAIProcessor } from '../../services/multi-step-ai-processor';
 
 export const QuestionForm = () => {
   const [question, setQuestion] = useState('');
@@ -12,7 +11,22 @@ export const QuestionForm = () => {
   const [error, setError] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  const controller = QuestionController.getInstance();
+  const apiService = ApiService.getInstance();
+  const domainService = DomainService.getInstance();
+
+  // Load history on component mount
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    try {
+      const historyData = await apiService.getHistory();
+      setHistory(historyData);
+    } catch (error) {
+      console.error('Failed to load history:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,25 +35,33 @@ export const QuestionForm = () => {
     setIsLoading(true);
 
     try {
-      const domain = controller.extractDomain(question);
+      const domain = domainService.extractDomain(question);
       if (!domain) {
         throw new Error('Please include a company domain in your question');
       }
 
-      const processor = new MultiStepAIProcessor(controller.getProvider());
+      if (!domainService.validateDomain(domain)) {
+        throw new Error('Invalid domain format');
+      }
+
+      // Get streaming response from backend
+      const stream = await apiService.analyzeQuestion(question);
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
       let fullText = '';
 
-      for await (const chunk of processor.process(question, domain)) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
         fullText += chunk;
         setStreamingText(fullText);
       }
 
-      setHistory(prev => [{
-        id: uuidv4(),
-        timestamp: new Date(),
-        question: { question, domain },
-        answer: { text: fullText }
-      }, ...prev]);
+      // Save to history
+      const historyItem = await apiService.saveHistory(question, domain, fullText);
+      setHistory(prev => [historyItem, ...prev]);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message || 'Failed to process question');
@@ -48,6 +70,19 @@ export const QuestionForm = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleHistorySelect = (item: HistoryItem) => {
+    setQuestion(item.question.question);
+  };
+
+  const handleHistoryDelete = async (id: string) => {
+    try {
+      await apiService.deleteHistory(id);
+      setHistory(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Failed to delete history item:', error);
     }
   };
 
@@ -86,7 +121,13 @@ export const QuestionForm = () => {
         </div>
       )}
 
-      {history.length > 0 && <History items={history} onSelect={(item) => setQuestion(item.question.question)} />}
+      {history.length > 0 && (
+        <History 
+          items={history} 
+          onSelect={handleHistorySelect}
+          onDelete={handleHistoryDelete}
+        />
+      )}
     </div>
   );
 };

@@ -1,9 +1,17 @@
-import { IAiProvider } from './interfaces/ai-provider.types';
-import { IMultiStepProcessor, IProcessStep } from './interfaces/multi-step-processor.types';
+import { Injectable } from '@nestjs/common';
+import { IAiProvider, Question } from './interfaces/ai-provider.interface';
 
-export class MultiStepAIProcessor implements IMultiStepProcessor {
-  private provider: IAiProvider;
-  private steps: IProcessStep[] = [
+export interface ProcessStep {
+  prompt: string;
+}
+
+export interface IMultiStepProcessor {
+  process(question: string, domain: string): AsyncGenerator<string, void, unknown>;
+}
+
+@Injectable()
+export class MultiStepProcessor implements IMultiStepProcessor {
+  private steps: ProcessStep[] = [
     {
       prompt: "First, analyze the company based on the domain. What industry are they in?"
     },
@@ -15,9 +23,7 @@ export class MultiStepAIProcessor implements IMultiStepProcessor {
     }
   ];
 
-  constructor(provider: IAiProvider) {
-    this.provider = provider;
-  }
+  constructor(private provider: IAiProvider) {}
 
   public async *process(question: string, domain: string): AsyncGenerator<string, void, unknown> {
     let context = `Analyzing ${domain}:\n`;
@@ -39,4 +45,4 @@ export class MultiStepAIProcessor implements IMultiStepProcessor {
       yield chunk;
     }
   }
-}
+} 
