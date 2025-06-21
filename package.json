@@ -5,48 +5,23 @@
   "description": "Company Question Analyzer with Next.js frontend and Nest.js backend",
   "scripts": {
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "dev:frontend": "next dev --turbopack -p 3000",
+    "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run start:dev",
     "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "next build",
+    "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
-    "start:frontend": "next start -p 3000",
+    "start:frontend": "cd frontend && npm run start",
     "start:backend": "cd backend && npm run start:prod",
-    "install:all": "npm install && cd backend && npm install",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "test": "npm run test:frontend && npm run test:backend",
-    "test:frontend": "jest",
+    "test:frontend": "cd frontend && npm test",
     "test:backend": "cd backend && npm test",
     "lint": "npm run lint:frontend && npm run lint:backend",
-    "lint:frontend": "next lint",
+    "lint:frontend": "cd frontend && npm run lint",
     "lint:backend": "cd backend && npm run lint"
   },
-  "dependencies": {
-    "next": "15.3.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "uuid": "^11.1.0"
-  },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/uuid": "^10.0.0",
-    "concurrently": "^8.2.2",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.3",
-    "jest": "^30.0.0",
-    "jest-environment-jsdom": "^30.0.0",
-    "tailwindcss": "^4",
-    "text-encoding": "^0.7.0",
-    "typescript": "^5",
-    "util": "^0.12.5"
+    "concurrently": "^8.2.2"
   }
-}
+} 

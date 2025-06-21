@@ -6,8 +6,8 @@ A full-stack application for analyzing companies based on questions and domains,
 
 This project is split into two main parts:
 
-- **Frontend**: Next.js application with React and TypeScript
-- **Backend**: Nest.js API server with TypeORM and SQLite
+- **Frontend**: Next.js application with React and TypeScript (`/frontend`)
+- **Backend**: Nest.js API server with TypeORM and SQLite (`/backend`)
 
 ## Quick Start
 
@@ -30,26 +30,23 @@ Edit `.env` and add your Perplexity API key:
 PERPLEXITY_API_KEY=your_api_key_here
 ```
 
-Start the backend:
-```bash
-npm run start:dev
-```
-
-The backend will run on `http://localhost:3001`
-
 ### 2. Frontend Setup
 
 ```bash
-# From the root directory
+cd frontend
 npm install
 ```
 
-Start the frontend:
+### 3. Run Both Services
+
+From the root directory:
 ```bash
-npm run dev
+npm run install:all  # Install all dependencies
+npm run dev          # Start both frontend and backend
 ```
 
-The frontend will run on `http://localhost:3000`
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3001
 
 ## Features
 
@@ -82,14 +79,28 @@ The frontend will run on `http://localhost:3000`
 ### History
 - `GET /history` - Get all history items
 - `POST /history` - Save a new history item
-- `DELETE /history/:id` - Delete a history item
 
 ## Development
+
+### Running Services Individually
+
+**Frontend only:**
+```bash
+cd frontend
+npm run dev
+```
+
+**Backend only:**
+```bash
+cd backend
+npm run start:dev
+```
 
 ### Running Tests
 
 **Frontend Tests:**
 ```bash
+cd frontend
 npm test
 ```
 
@@ -103,6 +114,7 @@ npm test
 
 **Frontend:**
 ```bash
+cd frontend
 npm run lint
 ```
 
@@ -115,19 +127,23 @@ npm run lint
 ## Project Structure
 
 ```
-├── src/                    # Frontend source code
-│   ├── app/               # Next.js app router
-│   ├── models/            # TypeScript interfaces
-│   ├── services/          # API and domain services
-│   └── views/             # React components
-├── backend/               # Nest.js backend
-│   ├── src/
+├── frontend/              # Next.js frontend application
+│   ├── src/              # Source code
+│   │   ├── app/          # Next.js app router
+│   │   ├── models/       # TypeScript interfaces
+│   │   ├── services/     # API and domain services
+│   │   └── views/        # React components
+│   ├── package.json      # Frontend dependencies
+│   └── ...               # Frontend config files
+├── backend/              # Nest.js backend application
+│   ├── src/              # Source code
 │   │   ├── ai/           # AI services and providers
 │   │   ├── questions/    # Question processing
 │   │   ├── history/      # History management
 │   │   └── common/       # Shared DTOs and entities
-│   └── package.json
-└── package.json          # Frontend package.json
+│   ├── package.json      # Backend dependencies
+│   └── ...               # Backend config files
+└── package.json          # Root package.json for managing both services
 ```
 
 ## Environment Variables
