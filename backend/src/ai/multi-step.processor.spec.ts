@@ -5,8 +5,12 @@ import { IAiProvider } from './ai-provider.interface';
 describe('MultiStepProcessor', () => {
   let processor: MultiStepProcessor;
   let mockAiProvider: jest.Mocked<IAiProvider>;
+  let consoleLogSpy: jest.SpyInstance;
 
   beforeEach(async () => {
+    // Suppress console.log during tests
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     mockAiProvider = {
       analyze: jest.fn(),
       streamAnalyze: jest.fn(),
@@ -26,6 +30,7 @@ describe('MultiStepProcessor', () => {
   });
 
   afterEach(() => {
+    consoleLogSpy.mockRestore();
     jest.clearAllMocks();
   });
 

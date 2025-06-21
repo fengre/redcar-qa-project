@@ -17,20 +17,28 @@ export interface HistoryItem {
 
 // Domain helpers
 export function extractDomain(question: string): string | null {
-  const domainMatch = question.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})/i);
+  // Match domains with subdomains, e.g., blog.github.com
+  const domainMatch = question.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
   return domainMatch ? domainMatch[1].toLowerCase() : null;
 }
 
 export function validateDomain(domain: string): boolean {
   const validTLDs = ['com', 'org', 'net', 'edu', 'gov', 'io', 'ai', 'co'];
+  // Must not have consecutive hyphens
+  if (/--/.test(domain)) return false;
+  // Must not start or end with hyphen (on any label)
+  if (/(^|-)[-]|[-]($|\.)/.test(domain)) return false;
+  // Must not have invalid characters
+  if (!/^[a-zA-Z0-9.-]+$/.test(domain)) return false;
+  // Must match the general domain pattern
   const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*(\.[a-zA-Z0-9][a-zA-Z0-9-]*)*\.[a-zA-Z]{2,}$/;
-  
-  if (!domainRegex.test(domain)) {
-    return false;
-  }
-
-  const extension = domain.split('.').pop()?.toLowerCase();
-  return extension ? validTLDs.includes(extension) : false;
+  if (!domainRegex.test(domain)) return false;
+  // Second-level domain (before first dot) must be at least 2 characters
+  const parts = domain.split('.');
+  if (parts[0].length < 2) return false;
+  // TLD must be valid
+  const extension = parts[parts.length - 1].toLowerCase();
+  return validTLDs.includes(extension);
 }
 
 // API methods

@@ -2,53 +2,56 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { QuestionsController } from './questions.controller';
 import { DomainService } from './domain.service';
 import { MultiStepProcessor } from '../ai/multi-step.processor';
-import { BadRequestException, HttpStatus } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Logger } from '@nestjs/common';
 import { Response } from 'express';
 
 describe('QuestionsController', () => {
   let controller: QuestionsController;
-  let domainService: DomainService;
-  let multiStepProcessor: MultiStepProcessor;
-
-  const mockDomainService = {
-    extractDomain: jest.fn(),
-    validateDomain: jest.fn(),
-  };
-
-  const mockMultiStepProcessor = {
-    process: jest.fn(),
-  };
-
-  const mockResponse = {
-    setHeader: jest.fn(),
-    status: jest.fn().mockReturnThis(),
-    write: jest.fn(),
-    end: jest.fn(),
-    json: jest.fn(),
-  } as any;
+  let mockDomainService: jest.Mocked<DomainService>;
+  let mockMultiStepProcessor: jest.Mocked<MultiStepProcessor>;
+  let mockResponse: jest.Mocked<Response>;
+  let consoleErrorSpy: jest.SpyInstance;
+  let loggerErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
+    // Suppress expected error logs during tests
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [QuestionsController],
       providers: [
         {
           provide: DomainService,
-          useValue: mockDomainService,
+          useValue: {
+            extractDomain: jest.fn(),
+            validateDomain: jest.fn(),
+          },
         },
         {
           provide: MultiStepProcessor,
-          useValue: mockMultiStepProcessor,
+          useValue: {
+            process: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     controller = module.get<QuestionsController>(QuestionsController);
-    domainService = module.get<DomainService>(DomainService);
-    multiStepProcessor = module.get<MultiStepProcessor>(MultiStepProcessor);
+    mockDomainService = module.get(DomainService);
+    mockMultiStepProcessor = module.get(MultiStepProcessor);
+    mockResponse = {
+      setHeader: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      write: jest.fn(),
+      end: jest.fn(),
+      json: jest.fn(),
+    } as any;
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    consoleErrorSpy.mockRestore();
+    loggerErrorSpy.mockRestore();
   });
 
   it('should be defined', () => {
