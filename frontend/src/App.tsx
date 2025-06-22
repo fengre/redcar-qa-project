@@ -1,4 +1,5 @@
 import { QuestionForm } from './components/QuestionForm'
+import { UserInfo } from './components/UserInfo'
 import { AuthProvider, useAuth } from './AuthContext'
 import { AuthModal } from './AuthModal'
 
@@ -11,6 +12,7 @@ function AppContent() {
         <h1 className="text-3xl font-bold text-center text-gray-900">
           Company Question Analyzer
         </h1>
+        {isAuthenticated && <UserInfo />}
         <div className="bg-white p-6 rounded-lg shadow">
           <QuestionForm />
         </div>
