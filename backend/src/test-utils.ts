@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HistoryItem } from './api/history.entity';
+import { User } from './auth/user.entity';
 
 // Mock fetch globally for tests
 global.fetch = jest.fn();
@@ -30,12 +31,22 @@ export const createMockConfigService = () => ({
 });
 
 // Test data factories
+export const createTestUser = (overrides: Partial<User> = {}): User => ({
+  id: '1',
+  username: 'testuser',
+  password: 'hashedpassword',
+  createdAt: new Date(),
+  ...overrides,
+});
+
 export const createTestHistoryItem = (overrides: Partial<HistoryItem> = {}): HistoryItem => ({
   id: '1',
   question: 'What does example.com do?',
   domain: 'example.com',
   answer: 'Example.com is a technology company.',
-  timestamp: new Date('2023-01-01T00:00:00Z'),
+  timestamp: new Date(),
+  userId: '1',
+  user: createTestUser(),
   ...overrides,
 });
 

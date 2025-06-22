@@ -10,17 +10,19 @@ export class HistoryService {
     private historyRepository: Repository<HistoryItem>,
   ) {}
 
-  async getHistory(): Promise<HistoryItem[]> {
+  async getHistory(userId: string): Promise<HistoryItem[]> {
     return this.historyRepository.find({
+      where: { userId },
       order: { timestamp: 'DESC' },
     });
   }
 
-  async saveHistory(question: string, domain: string, answer: string): Promise<HistoryItem> {
+  async saveHistory(question: string, domain: string, answer: string, userId: string): Promise<HistoryItem> {
     const historyItem = this.historyRepository.create({
       question,
       domain,
       answer,
+      userId,
     });
     return this.historyRepository.save(historyItem);
   }

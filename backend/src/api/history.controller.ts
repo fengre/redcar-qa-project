@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { HistoryService } from './history.service';
 import { SaveHistoryDto } from './history.dto';
 import { JwtAuthGuard } from '../auth/auth.guard';
@@ -9,12 +9,14 @@ export class HistoryController {
   constructor(private readonly historyService: HistoryService) {}
 
   @Get()
-  async getHistory() {
-    return this.historyService.getHistory();
+  async getHistory(@Request() req) {
+    const userId = req.user.userId;
+    return this.historyService.getHistory(userId);
   }
 
   @Post()
-  async saveHistory(@Body() data: SaveHistoryDto) {
-    return this.historyService.saveHistory(data.question, data.domain, data.answer);
+  async saveHistory(@Body() data: SaveHistoryDto, @Request() req) {
+    const userId = req.user.userId;
+    return this.historyService.saveHistory(data.question, data.domain, data.answer, userId);
   }
 } 
