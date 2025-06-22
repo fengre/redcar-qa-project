@@ -153,11 +153,6 @@ export const QuestionForm = () => {
           onSelect={handleHistorySelect}
         />
       )}
-      
-      {/* Debug info */}
-      <div className="text-xs text-gray-500 mt-4">
-        Debug: isAuthenticated={isAuthenticated.toString()}, historyLength={history.length}
-      </div>
     </div>
   );
 }; 
