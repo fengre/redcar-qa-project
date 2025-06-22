@@ -131,7 +131,7 @@ export const QuestionForm = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-full bg-gray-700 text-white py-2 px-4 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          className="rounded-full bg-black text-white py-2 px-4 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
           {isLoading ? 'Processing...' : 'Submit Question'}
         </button>
