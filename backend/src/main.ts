@@ -7,7 +7,8 @@ async function bootstrap() {
   
   // Enable CORS for frontend communication
   const allowedOrigins = [
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'https://redcar-qa-project.onrender.com'
   ];
   
   // Add FRONTEND_URL from environment if provided
