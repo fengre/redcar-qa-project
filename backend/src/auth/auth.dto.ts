@@ -2,11 +2,10 @@ import { IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
-  @MinLength(3)
   username: string;
 
   @IsString()
-  @MinLength(6)
+  @MinLength(6, { message: 'Password must be longer than or equal to 6 characters' })
   password: string;
 }
 

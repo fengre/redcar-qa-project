@@ -34,19 +34,21 @@ export class AuthService {
     };
   }
 
-  async validateUser(username: string, password: string): Promise<User | null> {
-    const user = await this.userRepository.findOne({ where: { username } });
-    if (!user) return null;
-    const valid = await bcrypt.compare(password, user.password);
-    return valid ? user : null;
-  }
-
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { username, password } = loginDto;
-    const user = await this.validateUser(username, password);
+    
+    // First check if user exists
+    const user = await this.userRepository.findOne({ where: { username } });
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Unregistered username');
     }
+    
+    // Then check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Wrong password');
+    }
+    
     const accessToken = this.jwtService.sign({ sub: user.id, username: user.username });
     return { 
       accessToken,

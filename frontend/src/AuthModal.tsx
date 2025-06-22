@@ -20,8 +20,23 @@ export const AuthModal: React.FC = () => {
       } else {
         await register(username, password);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      // Try to extract message from backend error response
+      if (err instanceof Error) {
+        try {
+          // If the error message is a JSON string, parse it
+          const parsed = JSON.parse(err.message);
+          if (parsed && parsed.message) {
+            setError(parsed.message);
+            return;
+          }
+        } catch {
+          // Not JSON, just use the message
+        }
+        setError(err.message || 'An error occurred');
+      } else {
+        setError('An error occurred');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -46,7 +61,6 @@ export const AuthModal: React.FC = () => {
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
-              minLength={3}
             />
           </div>
           
@@ -61,7 +75,6 @@ export const AuthModal: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
-              minLength={6}
             />
           </div>
           
