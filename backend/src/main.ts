@@ -7,9 +7,21 @@ async function bootstrap() {
   
   // Enable CORS for frontend communication
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  });
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,        // for production
+      'http://localhost:3000',         // for local dev
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy: ${origin} is not allowed`));
+    }
+  },
+  credentials: true,
+});
+
 
   // Add global validation pipe
   app.useGlobalPipes(new ValidationPipe({

@@ -1,109 +1,35 @@
-# RedCar QA Backend
+# Company Question Analyzer
 
-Nest.js backend for the Company Question Analyzer application.
+AI-powered web app for analyzing companies by domain and answering related questions.
 
-## Features
+## Quick Start
 
-- **Question Analysis**: Multi-step AI processing for company analysis
-- **History Management**: Persistent storage of question-answer pairs
-- **Domain Validation**: Robust domain extraction and validation
-- **Streaming Responses**: Real-time streaming of AI responses
-- **Database Integration**: SQLite database with TypeORM
+1. **Clone the repository**
+2. **Install dependencies** for both frontend and backend:
+    ```bash
+    npm run install:all
+    ```
+3. **Set up environment variables:**
+    In `backend/.env`:
+    ```
+    PERPLEXITY_API_KEY=your_perity_api_key_here
+    ```
+4. **Start the frontend and backend:**
+    ```bash
+    npm run dev
+    ```
+5. **Visit [http://localhost:3000](http://localhost:3000)** in your browser.
 
-## Tech Stack
+## Architecture & Key Decisions
 
-- **Framework**: Nest.js
-- **Database**: SQLite with TypeORM
-- **AI Provider**: Perplexity API
-- **Language**: TypeScript
+- **Separation of Frontend and Backend:**  
+  The app uses a React frontend and a Nest.js backend for clear separation of concerns, scalability, and maintainability.
 
-## Setup
-
-1. **Install Dependencies**:
-   ```bash
-   cd backend
-   npm install
-   ```
-
-2. **Environment Configuration**:
-   ```bash
-   cp env.example .env
-   ```
-   
-   Update `.env` with your configuration:
-   ```env
-   PERPLEXITY_API_KEY=your_perplexity_api_key_here
-   PORT=3001
-   NODE_ENV=development
-   ```
-
-3. **Database Setup**:
-   The SQLite database will be automatically created on first run.
-
-## Running the Application
-
-### Development
-```bash
-npm run start:dev
-```
-
-### Production
-```bash
-npm run build
-npm run start:prod
-```
-
-## API Endpoints
-
-### Questions
-- `POST /questions/analyze` - Analyze a question about a company
-  - Body: `{ "question": "What does microsoft.com do?" }`
-  - Response: Streaming text response
-
-### History
-- `GET /history` - Get all history items
-- `POST /history` - Save a new history item
-  - Body: `{ "question": "...", "domain": "...", "answer": "..." }`
-- `DELETE /history/:id` - Delete a history item
-
-## Architecture
-
-### Modules
-- **QuestionsModule**: Handles question processing and domain validation
-- **HistoryModule**: Manages question-answer history
-- **AiModule**: Coordinates AI providers and processing
-
-### Services
-- **QuestionsService**: Domain extraction and validation
-- **HistoryService**: Database operations for history
-- **AiService**: AI provider coordination
-- **MultiStepProcessor**: Complex analysis workflow
-- **PerplexityProvider**: Perplexity API integration
-
-### Entities
-- **HistoryItem**: Database entity for storing question-answer pairs
+- **Perplexity AI as Provider:**  
+  Perplexity is chosen for its real-time, accurate search capabilities and citation support, making it ideal for company analysis.
 
 ## Testing
 
-```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npm run test:e2e
-
-# Test coverage
-npm run test:cov
-```
-
-## Database Schema
-
-```sql
-CREATE TABLE history_item (
-  id VARCHAR PRIMARY KEY,
-  question TEXT NOT NULL,
-  domain TEXT NOT NULL,
-  answer TEXT NOT NULL,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-``` 
+  ```bash
+  npm run test
+  ```
