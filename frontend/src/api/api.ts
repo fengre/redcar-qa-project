@@ -49,7 +49,7 @@ export function validateDomain(domain: string): boolean {
 }
 
 // API methods
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem('jwt');

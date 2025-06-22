@@ -111,11 +111,11 @@ describe('API Utilities', () => {
       await analyzeQuestion('What does microsoft.com do?');
 
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:3001/questions/analyze',
+        `${process.env.BACKEND_URL}/questions/analyze`,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
           },
           body: JSON.stringify({ question: 'What does microsoft.com do?' }),
         }
@@ -161,7 +161,7 @@ describe('API Utilities', () => {
       const result = await getHistory();
 
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:3001/history',
+        `${process.env.BACKEND_URL}/history`,
         expect.objectContaining({ headers: expect.any(Object) })
       );
       expect(result).toEqual([
@@ -202,7 +202,7 @@ describe('API Utilities', () => {
       const result = await saveHistory('What does microsoft.com do?', 'microsoft.com', 'Microsoft is a technology company');
 
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:3001/history',
+        `${process.env.BACKEND_URL}/history`,
         {
           method: 'POST',
           headers: {

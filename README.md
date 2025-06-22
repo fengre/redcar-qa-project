@@ -1,170 +1,109 @@
-# Company Question Analyzer
+# RedCar QA Backend
 
-A full-stack application for analyzing companies based on questions and domains, built with Next.js frontend and Nest.js backend.
-
-## Architecture
-
-This project is split into two main parts:
-
-- **Frontend**: Next.js application with React and TypeScript (`/frontend`)
-- **Backend**: Nest.js API server with TypeORM and SQLite (`/backend`)
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- Perplexity API key
-
-### 1. Backend Setup
-
-```bash
-cd backend
-npm install
-cp env.example .env
-```
-
-Edit `.env` and add your Perplexity API key:
-```env
-PERPLEXITY_API_KEY=your_api_key_here
-```
-
-### 2. Frontend Setup
-
-```bash
-cd frontend
-npm install
-```
-
-### 3. Run Both Services
-
-From the root directory:
-```bash
-npm run install:all  # Install all dependencies
-npm run dev          # Start both frontend and backend
-```
-
-- Frontend: http://localhost:3000
-- Backend: http://localhost:3001
+Nest.js backend for the Company Question Analyzer application.
 
 ## Features
 
-- **Company Analysis**: Ask questions about companies using their domain
-- **Multi-step AI Processing**: Sophisticated analysis workflow
-- **Real-time Streaming**: Live streaming of AI responses
-- **History Management**: Persistent storage of questions and answers
+- **Question Analysis**: Multi-step AI processing for company analysis
+- **History Management**: Persistent storage of question-answer pairs
 - **Domain Validation**: Robust domain extraction and validation
-- **Modern UI**: Clean, responsive interface with Tailwind CSS
+- **Streaming Responses**: Real-time streaming of AI responses
+- **Database Integration**: SQLite database with TypeORM
 
 ## Tech Stack
 
-### Frontend
-- **Framework**: Next.js 15 with App Router
-- **UI**: React 19 with TypeScript
-- **Styling**: Tailwind CSS
-- **Testing**: Jest + Testing Library
-
-### Backend
 - **Framework**: Nest.js
 - **Database**: SQLite with TypeORM
 - **AI Provider**: Perplexity API
 - **Language**: TypeScript
 
+## Setup
+
+1. **Install Dependencies**:
+   ```bash
+   cd backend
+   npm install
+   ```
+
+2. **Environment Configuration**:
+   ```bash
+   cp env.example .env
+   ```
+   
+   Update `.env` with your configuration:
+   ```env
+   PERPLEXITY_API_KEY=your_perplexity_api_key_here
+   PORT=3001
+   NODE_ENV=development
+   ```
+
+3. **Database Setup**:
+   The SQLite database will be automatically created on first run.
+
+## Running the Application
+
+### Development
+```bash
+npm run start:dev
+```
+
+### Production
+```bash
+npm run build
+npm run start:prod
+```
+
 ## API Endpoints
 
 ### Questions
 - `POST /questions/analyze` - Analyze a question about a company
+  - Body: `{ "question": "What does microsoft.com do?" }`
+  - Response: Streaming text response
 
 ### History
 - `GET /history` - Get all history items
 - `POST /history` - Save a new history item
+  - Body: `{ "question": "...", "domain": "...", "answer": "..." }`
+- `DELETE /history/:id` - Delete a history item
 
-## Development
+## Architecture
 
-### Running Services Individually
+### Modules
+- **QuestionsModule**: Handles question processing and domain validation
+- **HistoryModule**: Manages question-answer history
+- **AiModule**: Coordinates AI providers and processing
 
-**Frontend only:**
+### Services
+- **QuestionsService**: Domain extraction and validation
+- **HistoryService**: Database operations for history
+- **AiService**: AI provider coordination
+- **MultiStepProcessor**: Complex analysis workflow
+- **PerplexityProvider**: Perplexity API integration
+
+### Entities
+- **HistoryItem**: Database entity for storing question-answer pairs
+
+## Testing
+
 ```bash
-cd frontend
-npm run dev
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```
 
-**Backend only:**
-```bash
-cd backend
-npm run start:dev
-```
+## Database Schema
 
-### Running Tests
-
-**Frontend Tests:**
-```bash
-cd frontend
-npm test
-```
-
-**Backend Tests:**
-```bash
-cd backend
-npm test
-```
-
-### Code Quality
-
-**Frontend:**
-```bash
-cd frontend
-npm run lint
-```
-
-**Backend:**
-```bash
-cd backend
-npm run lint
-```
-
-## Project Structure
-
-```
-├── frontend/              # Next.js frontend application
-│   ├── src/              # Source code
-│   │   ├── app/          # Next.js app router
-│   │   ├── models/       # TypeScript interfaces
-│   │   ├── services/     # API and domain services
-│   │   └── views/        # React components
-│   ├── package.json      # Frontend dependencies
-│   └── ...               # Frontend config files
-├── backend/              # Nest.js backend application
-│   ├── src/              # Source code
-│   │   ├── ai/           # AI services and providers
-│   │   ├── questions/    # Question processing
-│   │   ├── history/      # History management
-│   │   └── common/       # Shared DTOs and entities
-│   ├── package.json      # Backend dependencies
-│   └── ...               # Backend config files
-└── package.json          # Root package.json for managing both services
-```
-
-## Environment Variables
-
-### Frontend
-- `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:3001)
-
-### Backend
-- `PERPLEXITY_API_KEY` - Perplexity API key
-- `PORT` - Server port (default: 3001)
-- `NODE_ENV` - Environment (development/production)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## License
-
-This project is private and proprietary.
-
+```sql
+CREATE TABLE history_item (
+  id VARCHAR PRIMARY KEY,
+  question TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+``` 
