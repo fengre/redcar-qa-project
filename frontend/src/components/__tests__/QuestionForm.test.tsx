@@ -2,11 +2,18 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QuestionForm } from '../QuestionForm';
-import * as api from '../../api';
+import { extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from '../../api/api';
+import { createMockHistoryItem, setupMockApi, waitForLoadingToFinish } from '../../utils/test-utils';
 
 // Mock the API module
-jest.mock('../../api');
-const mockedApi = api as jest.Mocked<typeof api>;
+jest.mock('../../api/api');
+const mockedApi = {
+  extractDomain: extractDomain as jest.MockedFunction<typeof extractDomain>,
+  validateDomain: validateDomain as jest.MockedFunction<typeof validateDomain>,
+  analyzeQuestion: analyzeQuestion as jest.MockedFunction<typeof analyzeQuestion>,
+  getHistory: getHistory as jest.MockedFunction<typeof getHistory>,
+  saveHistory: saveHistory as jest.MockedFunction<typeof saveHistory>,
+};
 
 // Mock the History component
 jest.mock('../History', () => ({

@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { History } from '../History';
-import { HistoryItem } from '../../api';
+import { createMockHistoryItem } from '../../utils/test-utils';
+import { HistoryItem } from '../../api/api';
 
 // Mock data
 const mockHistoryItems: HistoryItem[] = [

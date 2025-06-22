@@ -1,4 +1,4 @@
-import { extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from './api';
+import { extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from '../api';
 
 // Mock fetch globally
 global.fetch = jest.fn();

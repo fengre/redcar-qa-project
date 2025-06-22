@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import App from '../App';
+import { createMockHistoryItem } from '../utils/test-utils';
 
 // Mock the QuestionForm component
 jest.mock('./components/QuestionForm', () => ({

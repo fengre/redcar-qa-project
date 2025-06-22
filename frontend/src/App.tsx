@@ -1,7 +1,7 @@
 import { QuestionForm } from './components/QuestionForm'
 import { UserInfo } from './components/UserInfo'
-import { AuthProvider, useAuth } from './AuthContext'
-import { AuthModal } from './AuthModal'
+import { AuthProvider, useAuth } from './auth/AuthContext'
+import { AuthModal } from './auth/AuthModal'
 
 function AppContent() {
   const { isAuthenticated } = useAuth();

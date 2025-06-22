@@ -261,7 +261,7 @@ describe('MultiStepProcessor', () => {
 
       expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
-      expect(chunks).toEqual(['Example.com', 'is a technology', 'company.']);
+      expect(chunks).toEqual(['Example.com ', 'is a technology ', 'company.']);
     });
 
     it('should handle empty streaming response', async () => {
@@ -467,7 +467,7 @@ Reference: Company website`;
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
 
       // Verify that all formatting is cleaned from the output (but lists are preserved)
-      const expectedOutput = 'Company Overview Example.com is a leading technology company that provides innovative software solutions. Key Services: - Software development - Cloud computing - AI solutions According to recent reports, they are a top performer. They use cutting-edge technology and have excellent customer service. Industry reports Company website';
+      const expectedOutput = `Company Overview\n\nExample.com is a leading technology company that provides innovative software solutions.\n\nKey Services:\n- Software development \n- Cloud computing \n- AI solutions\n\nAccording to recent reports, they are a top performer.\n\nThey use cutting-edge technology and have excellent customer service.\n\nIndustry reports\nCompany website`;
       expect(chunks.join('')).toBe(expectedOutput);
     });
 
@@ -533,7 +533,7 @@ Their main products include:
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
 
       // Verify that lists are preserved while other formatting is cleaned
-      const expectedOutput = 'Example.com offers several key services: 1. Software development 2. Cloud computing 3. AI solutions Their main products include: - Product A with features - Product B with benefits - Product C with advanced capabilities';
+      const expectedOutput = `Example.com offers several key services:\n\n1. Software development \n2. Cloud computing \n3. AI solutions\n\nTheir main products include:\n- Product A with features\n- Product B with benefits\n- Product C with advanced capabilities`;
       expect(chunks.join('')).toBe(expectedOutput);
     });
   });

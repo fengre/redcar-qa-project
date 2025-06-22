@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { HistoryItem, extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from '../api';
+import { HistoryItem, extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from '../api/api';
 import { History } from './History';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../auth/AuthContext';
 
 export const QuestionForm = () => {
   const [question, setQuestion] = useState('');
