@@ -1,4 +1,4 @@
-import { HistoryItem } from '../api';
+import { HistoryItem } from '../api/api';
 
 interface HistoryProps {
   items: HistoryItem[];
@@ -19,7 +19,9 @@ export const History: React.FC<HistoryProps> = ({ items, onSelect }) => {
             <div className="flex justify-between items-start mb-2">
               <p className="font-medium">{item.question.question}</p>
               <span className="text-sm text-gray-500">
-                {new Date(item.timestamp).toLocaleString()}
+                {item.timestamp instanceof Date
+                  ? item.timestamp.toLocaleString()
+                  : new Date(item.timestamp).toLocaleString()}
               </span>
             </div>
             <p className="text-sm text-gray-600 truncate">{item.answer.text}</p>
