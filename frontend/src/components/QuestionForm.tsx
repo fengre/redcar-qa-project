@@ -13,24 +13,24 @@ export const QuestionForm = () => {
 
   // Debug authentication state changes
   useEffect(() => {
-    console.log('QuestionForm: Authentication state changed:', { isAuthenticated });
+    // console.log('QuestionForm: Authentication state changed:', { isAuthenticated });
   }, [isAuthenticated]);
 
   const loadHistory = useCallback(async () => {
     if (!isAuthenticated) {
-      console.log('User not authenticated, clearing history');
+      // console.log('User not authenticated, clearing history');
       setHistory([]);
       return;
     }
     
     try {
-      console.log('Loading history for authenticated user...');
+      // console.log('Loading history for authenticated user...');
       
       // Add a small delay to ensure authentication state is properly set
       await new Promise(resolve => setTimeout(resolve, 100));
       
       const historyData = await getHistory();
-      console.log('History data received:', historyData);
+      // console.log('History data received:', historyData);
       setHistory(historyData);
     } catch (error) {
       console.error('Failed to load history:', error);
@@ -40,15 +40,15 @@ export const QuestionForm = () => {
 
   // Load history when authentication state changes
   useEffect(() => {
-    console.log('QuestionForm: loadHistory effect triggered, isAuthenticated:', isAuthenticated);
+    // console.log('QuestionForm: loadHistory effect triggered, isAuthenticated:', isAuthenticated);
     loadHistory();
   }, [loadHistory]);
 
   // Clear history and form when user logs out
   useEffect(() => {
-    console.log('QuestionForm: logout effect triggered, isAuthenticated:', isAuthenticated);
+    // console.log('QuestionForm: logout effect triggered, isAuthenticated:', isAuthenticated);
     if (!isAuthenticated) {
-      console.log('QuestionForm: Clearing history and form due to logout');
+      // console.log('QuestionForm: Clearing history and form due to logout');
       setHistory([]);
       setQuestion('');
       setStreamingText('');
@@ -58,7 +58,7 @@ export const QuestionForm = () => {
 
   // Debug history state changes
   useEffect(() => {
-    console.log('QuestionForm: History state changed:', { historyLength: history.length, history });
+    // console.log('QuestionForm: History state changed:', { historyLength: history.length, history });
   }, [history]);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { QuestionForm } from '../QuestionForm';
 import { extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from '../../api/api';
 import { createMockHistoryItem, setupMockApi, waitForLoadingToFinish } from '../../utils/test-utils';
+import { AuthProvider } from '../../auth/AuthContext';
 
 // Mock the API module
 jest.mock('../../api/api');
@@ -27,6 +28,15 @@ jest.mock('../History', () => ({
     </div>
   )
 }));
+
+// Helper function to render QuestionForm with AuthProvider
+const renderWithAuth = (component: React.ReactElement) => {
+  return render(
+    <AuthProvider>
+      {component}
+    </AuthProvider>
+  );
+};
 
 describe('QuestionForm Component', () => {
   const mockHistoryItems = [
@@ -61,6 +71,10 @@ describe('QuestionForm Component', () => {
   });
 
   beforeEach(() => {
+    // Mock authentication in localStorage
+    localStorage.setItem('jwt', 'test-token');
+    localStorage.setItem('user', JSON.stringify({ id: '1', username: 'testuser', createdAt: '2024-01-01T00:00:00Z' }));
+
     jest.clearAllMocks();
     
     // Setup default mocks
@@ -97,9 +111,15 @@ describe('QuestionForm Component', () => {
     });
   });
 
+  afterEach(() => {
+    // Clean up localStorage
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('user');
+  });
+
   it('should render the form with all elements', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     expect(screen.getByLabelText('Your Question:')).toBeInTheDocument();
@@ -109,7 +129,7 @@ describe('QuestionForm Component', () => {
 
   it('should load history on component mount', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     await waitFor(() => {
@@ -119,7 +139,7 @@ describe('QuestionForm Component', () => {
 
   it('should handle form submission with valid question', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -139,7 +159,7 @@ describe('QuestionForm Component', () => {
 
   it('should display streaming response', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -163,7 +183,7 @@ describe('QuestionForm Component', () => {
     );
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -182,7 +202,7 @@ describe('QuestionForm Component', () => {
     mockedApi.extractDomain.mockReturnValue(null);
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -202,7 +222,7 @@ describe('QuestionForm Component', () => {
     mockedApi.validateDomain.mockReturnValue(false);
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -222,7 +242,7 @@ describe('QuestionForm Component', () => {
     mockedApi.analyzeQuestion.mockRejectedValue(new Error('API Error'));
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -240,7 +260,7 @@ describe('QuestionForm Component', () => {
 
   it('should save to history after successful submission', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -269,7 +289,7 @@ describe('QuestionForm Component', () => {
 
   it('should display history component when history exists', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     await waitFor(() => {
@@ -279,7 +299,7 @@ describe('QuestionForm Component', () => {
 
   it('should handle history item selection', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     await waitFor(() => {
@@ -299,7 +319,7 @@ describe('QuestionForm Component', () => {
     mockedApi.extractDomain.mockReturnValueOnce(null).mockReturnValue('microsoft.com');
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -329,7 +349,7 @@ describe('QuestionForm Component', () => {
 
   it('should handle empty question submission', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const submitButton = screen.getByRole('button', { name: 'Submit Question' });
@@ -352,7 +372,7 @@ describe('QuestionForm Component', () => {
     mockedApi.getHistory.mockRejectedValue(new Error('Failed to load history'));
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith('Failed to load history:', expect.any(Error));
@@ -364,7 +384,7 @@ describe('QuestionForm Component', () => {
     mockedApi.saveHistory.mockRejectedValue(new Error('Failed to save'));
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -389,7 +409,7 @@ describe('QuestionForm Component', () => {
     mockedApi.analyzeQuestion.mockReturnValue(streamPromise);
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -417,7 +437,7 @@ describe('QuestionForm Component', () => {
 
   it('should handle form validation', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -437,7 +457,7 @@ describe('QuestionForm Component', () => {
 
   it('should update textarea value on change', async () => {
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');
@@ -452,7 +472,7 @@ describe('QuestionForm Component', () => {
     mockedApi.extractDomain.mockReturnValue(null);
     
     await act(async () => {
-      render(<QuestionForm />);
+      renderWithAuth(<QuestionForm />);
     });
     
     const textarea = screen.getByLabelText('Your Question:');

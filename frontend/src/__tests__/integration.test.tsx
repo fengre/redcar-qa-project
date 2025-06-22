@@ -182,6 +182,12 @@ describe('Integration Tests', () => {
   });
 
   it('should handle multiple rapid submissions', async () => {
+    // Mock fetch to prevent AuthContext from making real API calls
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ accessToken: 'test-token', user: { id: '1', username: 'testuser', createdAt: '2024-01-01T00:00:00Z' } }),
+    } as any);
+
     await act(async () => {
       render(<App />);
     });
@@ -214,6 +220,12 @@ describe('Integration Tests', () => {
   });
 
   it('should maintain state consistency across component interactions', async () => {
+    // Mock fetch to prevent AuthContext from making real API calls
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ accessToken: 'test-token', user: { id: '1', username: 'testuser', createdAt: '2024-01-01T00:00:00Z' } }),
+    } as any);
+
     await act(async () => {
       render(<App />);
     });
@@ -290,6 +302,12 @@ describe('Integration Tests', () => {
   });
 
   it('should handle network errors gracefully', async () => {
+    // Mock fetch to prevent AuthContext from making real API calls
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ accessToken: 'test-token', user: { id: '1', username: 'testuser', createdAt: '2024-01-01T00:00:00Z' } }),
+    } as any);
+
     // Mock network error
     mockedApi.getHistory.mockRejectedValueOnce(new Error('Network error'));
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -305,6 +323,12 @@ describe('Integration Tests', () => {
   });
 
   it('should handle streaming response properly', async () => {
+    // Mock fetch to prevent AuthContext from making real API calls
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ accessToken: 'test-token', user: { id: '1', username: 'testuser', createdAt: '2024-01-01T00:00:00Z' } }),
+    } as any);
+
     // Mock a streaming response with multiple chunks
     mockedApi.analyzeQuestion.mockImplementation(async () => {
       return new ReadableStream({
@@ -579,6 +603,12 @@ describe('Integration Tests', () => {
     });
 
     it('should clear form and error when switching between login and register', async () => {
+      // Mock fetch to prevent AuthContext from making real API calls
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ accessToken: 'test-token', user: { id: '1', username: 'testuser', createdAt: '2024-01-01T00:00:00Z' } }),
+      } as any);
+
       await act(async () => {
         render(<App />);
       });

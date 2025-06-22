@@ -4,11 +4,27 @@ import App from '../App';
 import { createMockHistoryItem } from '../utils/test-utils';
 
 // Mock the QuestionForm component
-jest.mock('./components/QuestionForm', () => ({
+jest.mock('../components/QuestionForm', () => ({
   QuestionForm: () => <div data-testid="question-form">Question Form Component</div>
 }));
 
+// Mock fetch to prevent AuthContext from making real API calls
+let fetchMock: jest.SpyInstance;
+
 describe('App Component', () => {
+  beforeEach(() => {
+    // Setup fetch mock to prevent real API calls
+    fetchMock = jest.spyOn(window, 'fetch');
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ accessToken: 'test-token', user: { id: '1', username: 'testuser', createdAt: '2024-01-01T00:00:00Z' } }),
+    } as any);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('should render the main title', () => {
     render(<App />);
     expect(screen.getByText('Company Question Analyzer')).toBeInTheDocument();

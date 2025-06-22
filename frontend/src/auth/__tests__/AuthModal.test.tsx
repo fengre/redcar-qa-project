@@ -12,6 +12,18 @@ jest.mock('../AuthContext', () => ({
   }),
 }));
 
+beforeAll(() => {
+  jest.spyOn(console, 'log').mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  (console.log as jest.Mock).mockRestore();
+  (console.warn as jest.Mock).mockRestore();
+  (console.error as jest.Mock).mockRestore();
+});
+
 describe('AuthModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -19,7 +31,7 @@ describe('AuthModal', () => {
 
   it('renders login form by default', () => {
     render(<AuthModal />);
-    expect(screen.getByText('Login')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument();
     expect(screen.getByLabelText('Username')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
@@ -28,7 +40,7 @@ describe('AuthModal', () => {
   it('switches to register form', () => {
     render(<AuthModal />);
     fireEvent.click(screen.getByText(/don\'t have an account/i));
-    expect(screen.getByText('Register')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Register' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument();
   });
 

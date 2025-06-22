@@ -160,7 +160,10 @@ describe('API Utilities', () => {
 
       const result = await getHistory();
 
-      expect(fetch).toHaveBeenCalledWith('http://localhost:3001/history');
+      expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:3001/history',
+        expect.objectContaining({ headers: expect.any(Object) })
+      );
       expect(result).toEqual([
         {
           id: '1',
@@ -173,7 +176,8 @@ describe('API Utilities', () => {
 
     it('should throw error when response is not ok', async () => {
       (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false
+        ok: false,
+        text: () => Promise.resolve('Some error')
       });
 
       await expect(getHistory()).rejects.toThrow('Failed to fetch history');
