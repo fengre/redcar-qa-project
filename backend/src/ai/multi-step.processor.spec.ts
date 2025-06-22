@@ -75,7 +75,7 @@ describe('MultiStepProcessor', () => {
       // Verify the streaming call
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
       const actualArgs = mockAiProvider.streamAnalyze.mock.calls[0];
-      const expectedContext = 'Analyzing example.com:\n\ntrue\nTechnology industry. Software development services.\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner, while also removing link references: What does example.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.';
+      const expectedContext = 'Analyzing example.com:\n\ntrue\nTechnology industry. Software development services.\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner: What does example.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.';
       // Debug log for whitespace issues
       // eslint-disable-next-line no-console
       console.log('---EXPECTED---\n' + expectedContext.split('\n').map(l => '>' + l + '<').join('\n'));
@@ -132,7 +132,7 @@ describe('MultiStepProcessor', () => {
       // Verify the streaming call with failure message
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledWith(
-        'Analyzing fakecompany.com:\n\nfalse\nfalse\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner, while also removing link references: What does fakecompany.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.',
+        'Analyzing fakecompany.com:\n\nfalse\nfalse\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner: What does fakecompany.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.',
         'fakecompany.com'
       );
 
@@ -163,7 +163,7 @@ describe('MultiStepProcessor', () => {
       expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledWith(
-        'Analyzing suspicious.com:\n\ntrue\nfalse\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner, while also removing link references: What does suspicious.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.',
+        'Analyzing suspicious.com:\n\ntrue\nfalse\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner: What does suspicious.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.',
         'suspicious.com'
       );
 
@@ -261,7 +261,7 @@ describe('MultiStepProcessor', () => {
 
       expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
-      expect(chunks).toEqual(['Example.com ', 'is a technology ', 'company.']);
+      expect(chunks).toEqual(['Example.com', 'is a technology', 'company.']);
     });
 
     it('should handle empty streaming response', async () => {
@@ -365,11 +365,176 @@ describe('MultiStepProcessor', () => {
       );
 
       expect(mockAiProvider.streamAnalyze).toHaveBeenCalledWith(
-        'Analyzing example.com:\n\ntrue\nTechnology industry. Software development services.\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner, while also removing link references: What does example.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.',
+        'Analyzing example.com:\n\ntrue\nTechnology industry. Software development services.\n\nIf the previous response is not false, using all previous information, answer this specific question in a very short, simple, and concise manner: What does example.com do?. Otherwise, explain in a simple, concise manner that the company or website does not seem to exist or is not a legitimate company or website.',
         'example.com'
       );
 
       expect(chunks).toEqual(['Final answer.']);
+    });
+
+    it('should clean link references and bold formatting from output', async () => {
+      const question = 'What does example.com do?';
+      const domain = 'example.com';
+
+      // Mock responses for the first two steps
+      mockAiProvider.analyze
+        .mockResolvedValueOnce('true') // Step 1: Company is legitimate
+        .mockResolvedValueOnce('Technology industry. Software development services.'); // Step 2: Industry and services
+
+      // Mock streaming response with link references and bold formatting
+      const mockStreamGenerator = (async function* () {
+        yield 'Example.com is a **technology company** [1] that provides **software development services** [2].';
+      })();
+      mockAiProvider.streamAnalyze.mockReturnValue(mockStreamGenerator);
+
+      const chunks: string[] = [];
+      for await (const chunk of processor.process(question, domain)) {
+        chunks.push(chunk);
+      }
+
+      // Verify the first two analyze calls
+      expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
+      expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
+
+      // Verify that link references and bold formatting are cleaned from the output
+      expect(chunks).toEqual(['Example.com is a technology company that provides software development services.']);
+    });
+
+    it('should clean bold formatting from output', async () => {
+      const question = 'What does example.com do?';
+      const domain = 'example.com';
+
+      // Mock responses for the first two steps
+      mockAiProvider.analyze
+        .mockResolvedValueOnce('true') // Step 1: Company is legitimate
+        .mockResolvedValueOnce('Technology industry. Software development services.'); // Step 2: Industry and services
+
+      // Mock streaming response with only bold formatting
+      const mockStreamGenerator = (async function* () {
+        yield 'Example.com is a **leading** technology company that provides **innovative** software solutions.';
+      })();
+      mockAiProvider.streamAnalyze.mockReturnValue(mockStreamGenerator);
+
+      const chunks: string[] = [];
+      for await (const chunk of processor.process(question, domain)) {
+        chunks.push(chunk);
+      }
+
+      // Verify the first two analyze calls
+      expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
+      expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
+
+      // Verify that bold formatting is cleaned from the output
+      expect(chunks).toEqual(['Example.com is a leading technology company that provides innovative software solutions.']);
+    });
+
+    it('should clean comprehensive formatting from output', async () => {
+      const question = 'What does example.com do?';
+      const domain = 'example.com';
+
+      // Mock responses for the first two steps
+      mockAiProvider.analyze
+        .mockResolvedValueOnce('true') // Step 1: Company is legitimate
+        .mockResolvedValueOnce('Technology industry. Software development services.'); // Step 2: Industry and services
+
+      // Mock streaming response with various formatting patterns
+      const mockStreamGenerator = (async function* () {
+        yield `# Company Overview
+
+Example.com is a **leading** technology company [1] that provides *innovative* software solutions.
+
+## Key Services:
+- Software development [2]
+- Cloud computing (3)
+- AI solutions
+
+> According to recent reports, they are a top performer.
+
+They use \`cutting-edge\` technology and have <strong>excellent</strong> customer service.
+
+Source: Industry reports
+Reference: Company website`;
+      })();
+      mockAiProvider.streamAnalyze.mockReturnValue(mockStreamGenerator);
+
+      const chunks: string[] = [];
+      for await (const chunk of processor.process(question, domain)) {
+        chunks.push(chunk);
+      }
+
+      // Verify the first two analyze calls
+      expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
+      expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
+
+      // Verify that all formatting is cleaned from the output (but lists are preserved)
+      const expectedOutput = 'Company Overview Example.com is a leading technology company that provides innovative software solutions. Key Services: - Software development - Cloud computing - AI solutions According to recent reports, they are a top performer. They use cutting-edge technology and have excellent customer service. Industry reports Company website';
+      expect(chunks.join('')).toBe(expectedOutput);
+    });
+
+    it('should clean special characters and normalize formatting', async () => {
+      const question = 'What does example.com do?';
+      const domain = 'example.com';
+
+      // Mock responses for the first two steps
+      mockAiProvider.analyze
+        .mockResolvedValueOnce('true') // Step 1: Company is legitimate
+        .mockResolvedValueOnce('Technology industry. Software development services.'); // Step 2: Industry and services
+
+      // Mock streaming response with special characters
+      const mockStreamGenerator = (async function* () {
+        yield 'Example.com uses "smart quotes" and —em dashes— with \'apostrophes\' and extra   spaces.';
+      })();
+      mockAiProvider.streamAnalyze.mockReturnValue(mockStreamGenerator);
+
+      const chunks: string[] = [];
+      for await (const chunk of processor.process(question, domain)) {
+        chunks.push(chunk);
+      }
+
+      // Verify the first two analyze calls
+      expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
+      expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
+
+      // Verify that special characters are normalized
+      expect(chunks).toEqual(['Example.com uses "smart quotes" and -em dashes- with \'apostrophes\' and extra spaces.']);
+    });
+
+    it('should preserve lists while cleaning other formatting', async () => {
+      const question = 'What does example.com do?';
+      const domain = 'example.com';
+
+      // Mock responses for the first two steps
+      mockAiProvider.analyze
+        .mockResolvedValueOnce('true') // Step 1: Company is legitimate
+        .mockResolvedValueOnce('Technology industry. Software development services.'); // Step 2: Industry and services
+
+      // Mock streaming response with lists and other formatting
+      const mockStreamGenerator = (async function* () {
+        yield `Example.com offers several **key services**:
+
+1. Software development [1]
+2. Cloud computing (2)
+3. AI solutions
+
+Their main products include:
+- Product A *with features*
+- Product B _with benefits_
+- Product C with \`advanced\` capabilities`;
+      })();
+      mockAiProvider.streamAnalyze.mockReturnValue(mockStreamGenerator);
+
+      const chunks: string[] = [];
+      for await (const chunk of processor.process(question, domain)) {
+        chunks.push(chunk);
+      }
+
+      // Verify the first two analyze calls
+      expect(mockAiProvider.analyze).toHaveBeenCalledTimes(2);
+      expect(mockAiProvider.streamAnalyze).toHaveBeenCalledTimes(1);
+
+      // Verify that lists are preserved while other formatting is cleaned
+      const expectedOutput = 'Example.com offers several key services: 1. Software development 2. Cloud computing 3. AI solutions Their main products include: - Product A with features - Product B with benefits - Product C with advanced capabilities';
+      expect(chunks.join('')).toBe(expectedOutput);
     });
   });
 }); 
