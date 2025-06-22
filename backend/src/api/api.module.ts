@@ -6,10 +6,11 @@ import { HistoryService } from './history.service';
 import { HistoryItem } from './history.entity';
 import { AiModule } from '../ai/ai.module';
 import { DomainService } from './domain.service';
+import { User } from '../auth/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([HistoryItem]),
+    TypeOrmModule.forFeature([HistoryItem, User]),
     AiModule,
   ],
   controllers: [QuestionsController, HistoryController],

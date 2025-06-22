@@ -70,10 +70,9 @@ export class MultiStepProcessor implements IMultiStepProcessor {
     cleaned = cleaned.replace(/—/g, '-'); // em dash to regular dash
     
     // Clean up extra whitespace (but preserve list formatting)
-    cleaned = cleaned.replace(/\s+/g, ' '); // multiple spaces to single space
+    cleaned = cleaned.replace(/[ ]{2,}/g, ' '); // multiple spaces to single space (but preserve single spaces)
     cleaned = cleaned.replace(/\s+\./g, '.'); // space before period
     cleaned = cleaned.replace(/\s+,/g, ','); // space before comma
-    cleaned = cleaned.trim();
     
     return cleaned;
   }

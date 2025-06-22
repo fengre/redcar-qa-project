@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Res, HttpStatus, BadRequestException, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Res, HttpStatus, BadRequestException, Logger, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { DomainService } from './domain.service';
 import { MultiStepProcessor } from '../ai/multi-step.processor';
 import { AnalyzeQuestionDto } from './question.dto';
+import { JwtAuthGuard } from '../auth/auth.guard';
 
 @Controller('questions')
 export class QuestionsController {
@@ -14,6 +15,7 @@ export class QuestionsController {
   ) {}
 
   @Post('analyze')
+  @UseGuards(JwtAuthGuard)
   async analyzeQuestion(@Body() analyzeDto: AnalyzeQuestionDto, @Res() res: Response) {
     try {
       this.logger.log(`Received question: ${analyzeDto.question}`);

@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { HistoryService } from './history.service';
 import { SaveHistoryDto } from './history.dto';
+import { JwtAuthGuard } from '../auth/auth.guard';
 
 @Controller('history')
+@UseGuards(JwtAuthGuard)
 export class HistoryController {
   constructor(private readonly historyService: HistoryService) {}
 

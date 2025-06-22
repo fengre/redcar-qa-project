@@ -44,12 +44,18 @@ export function validateDomain(domain: string): boolean {
 // API methods
 const API_BASE_URL = 'http://localhost:3001';
 
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('jwt');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function analyzeQuestion(question: string): Promise<ReadableStream<Uint8Array>> {
   const response = await fetch(`${API_BASE_URL}/questions/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-    },
+      ...authHeaders(),
+    } as Record<string, string>,
     body: JSON.stringify({ question }),
   });
 
@@ -62,7 +68,11 @@ export async function analyzeQuestion(question: string): Promise<ReadableStream<
 }
 
 export async function getHistory(): Promise<HistoryItem[]> {
-  const response = await fetch(`${API_BASE_URL}/history`);
+  const response = await fetch(`${API_BASE_URL}/history`, {
+    headers: {
+      ...authHeaders(),
+    } as Record<string, string>,
+  });
   
   if (!response.ok) {
     throw new Error('Failed to fetch history');
@@ -82,7 +92,8 @@ export async function saveHistory(question: string, domain: string, answer: stri
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-    },
+      ...authHeaders(),
+    } as Record<string, string>,
     body: JSON.stringify({ question, domain, answer }),
   });
 
