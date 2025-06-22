@@ -3,6 +3,8 @@ import { extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory
 // Mock fetch globally
 global.fetch = jest.fn();
 
+const API_BASE_URL = API_BASE_URL || 'http://localhost:3001';
+
 describe('API Utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -111,7 +113,7 @@ describe('API Utilities', () => {
       await analyzeQuestion('What does microsoft.com do?');
 
       expect(fetch).toHaveBeenCalledWith(
-        `${process.env.BACKEND_URL}/questions/analyze`,
+        `${API_BASE_URL}/questions/analyze`,
         {
           method: 'POST',
           headers: {
@@ -161,7 +163,7 @@ describe('API Utilities', () => {
       const result = await getHistory();
 
       expect(fetch).toHaveBeenCalledWith(
-        `${process.env.BACKEND_URL}/history`,
+        `${API_BASE_URL}/history`,
         expect.objectContaining({ headers: expect.any(Object) })
       );
       expect(result).toEqual([
@@ -202,7 +204,7 @@ describe('API Utilities', () => {
       const result = await saveHistory('What does microsoft.com do?', 'microsoft.com', 'Microsoft is a technology company');
 
       expect(fetch).toHaveBeenCalledWith(
-        `${process.env.BACKEND_URL}/history`,
+        `${API_BASE_URL}/history`,
         {
           method: 'POST',
           headers: {
