@@ -46,6 +46,7 @@ const API_BASE_URL = 'http://localhost:3001';
 
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem('jwt');
+  console.log('Auth headers - JWT token:', token ? 'Present' : 'Missing');
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
@@ -68,17 +69,21 @@ export async function analyzeQuestion(question: string): Promise<ReadableStream<
 }
 
 export async function getHistory(): Promise<HistoryItem[]> {
+  const headers = authHeaders();
+  console.log('Making history request with headers:', headers);
+  
   const response = await fetch(`${API_BASE_URL}/history`, {
-    headers: {
-      ...authHeaders(),
-    } as Record<string, string>,
+    headers: headers as Record<string, string>,
   });
   
   if (!response.ok) {
-    throw new Error('Failed to fetch history');
+    const errorText = await response.text();
+    console.error('History request failed:', response.status, errorText);
+    throw new Error(`Failed to fetch history: ${response.status} ${errorText}`);
   }
 
   const data = await response.json();
+  console.log('History data from backend:', data); // Debug log
   return data.map((item: any) => ({
     id: item.id,
     timestamp: new Date(item.timestamp),
@@ -102,6 +107,7 @@ export async function saveHistory(question: string, domain: string, answer: stri
   }
 
   const data = await response.json();
+  console.log('Saved history item:', data); // Debug log
   return {
     id: data.id,
     timestamp: new Date(data.timestamp),

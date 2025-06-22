@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { HistoryItem, extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory } from '../api';
 import { History } from './History';
+import { useAuth } from '../AuthContext';
 
 export const QuestionForm = () => {
   const [question, setQuestion] = useState('');
@@ -8,20 +9,57 @@ export const QuestionForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const { isAuthenticated } = useAuth();
+
+  // Debug authentication state changes
+  useEffect(() => {
+    console.log('QuestionForm: Authentication state changed:', { isAuthenticated });
+  }, [isAuthenticated]);
 
   const loadHistory = useCallback(async () => {
+    if (!isAuthenticated) {
+      console.log('User not authenticated, clearing history');
+      setHistory([]);
+      return;
+    }
+    
     try {
+      console.log('Loading history for authenticated user...');
+      
+      // Add a small delay to ensure authentication state is properly set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const historyData = await getHistory();
+      console.log('History data received:', historyData);
       setHistory(historyData);
     } catch (error) {
       console.error('Failed to load history:', error);
+      setHistory([]);
     }
-  }, []);
+  }, [isAuthenticated]);
 
-  // Load history on component mount
+  // Load history when authentication state changes
   useEffect(() => {
+    console.log('QuestionForm: loadHistory effect triggered, isAuthenticated:', isAuthenticated);
     loadHistory();
   }, [loadHistory]);
+
+  // Clear history and form when user logs out
+  useEffect(() => {
+    console.log('QuestionForm: logout effect triggered, isAuthenticated:', isAuthenticated);
+    if (!isAuthenticated) {
+      console.log('QuestionForm: Clearing history and form due to logout');
+      setHistory([]);
+      setQuestion('');
+      setStreamingText('');
+      setError('');
+    }
+  }, [isAuthenticated]);
+
+  // Debug history state changes
+  useEffect(() => {
+    console.log('QuestionForm: History state changed:', { historyLength: history.length, history });
+  }, [history]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,12 +147,17 @@ export const QuestionForm = () => {
         </div>
       )}
 
-      {history.length > 0 && (
+      {isAuthenticated && history.length > 0 && (
         <History 
           items={history} 
           onSelect={handleHistorySelect}
         />
       )}
+      
+      {/* Debug info */}
+      <div className="text-xs text-gray-500 mt-4">
+        Debug: isAuthenticated={isAuthenticated.toString()}, historyLength={history.length}
+      </div>
     </div>
   );
 }; 
