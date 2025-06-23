@@ -3,7 +3,7 @@ import { extractDomain, validateDomain, analyzeQuestion, getHistory, saveHistory
 // Mock fetch globally
 global.fetch = jest.fn();
 
-const API_BASE_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 describe('API Utilities', () => {
   beforeEach(() => {

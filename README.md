@@ -12,7 +12,7 @@ AI-powered web app for analyzing companies by domain and answering related quest
 3. **Set up environment variables:**
     In `backend/.env`:
     ```
-    PERPLEXITY_API_KEY=your_perity_api_key_here
+    PERPLEXITY_API_KEY=your_perplexity_api_key_here
     ```
 4. **Start the frontend and backend:**
     ```bash
